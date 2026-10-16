@@ -1,26 +1,27 @@
-// @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
-// https://astro.build/config
 export default defineConfig({
-	integrations: [
-		starlight({
-			title: 'My Docs',
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' }],
-			sidebar: [
-				{
-					label: 'Guides',
-					items: [
-						// Each item here is one entry in the navigation menu.
-						{ label: 'Example Guide', slug: 'guides/example' },
-					],
-				},
-				{
-					label: 'Reference',
-					items: [{ autogenerate: { directory: 'reference' } }],
-				},
-			],
-		}),
-	],
+  site: 'https://computer-communication-security-club.github.io',
+  base: '/ctf-wiki',
+  integrations: [
+    starlight({
+      title: 'CTF Wiki',
+      defaultLocale: 'root',
+      locales: { root: { label: 'Монгол', lang: 'mn' } },
+      social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/computer-communication-security-club/ctf-wiki' }],
+      sidebar: [
+        { label: 'Эхлэл', items: [
+          { label: 'Танилцуулга', slug: 'index' },
+          { label: 'Нэр томъёо', slug: 'glossary' },
+          { label: 'Хувь нэмэр', slug: 'contribute' },
+        ]},
+        { label: 'CTF', items: [
+          { label: 'Pwn: Stack Overflow', items: [
+            { label: 'ret2text', slug: 'ctf/pwn/ret2text' },
+          ]},
+        ]},
+      ],
+    }),
+  ],
 });
