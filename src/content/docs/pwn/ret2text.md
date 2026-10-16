@@ -60,7 +60,7 @@ ret2text ажиллах нөхцөл:
 ## Жишээ 1: bamboofox ret2text (32-bit)
 
 Энэ жишээ [CTF Wiki](https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/basic-rop/#ret2text)-ээс авсан.
-Binary-г тэр хуудаснаас татаж авна.
+Binary-г [ctf-wiki/ctf-challenges](https://github.com/ctf-wiki/ctf-challenges/tree/master/pwn/linux/user-mode/stackoverflow/ret2text/bamboofox-ret2text) repo-оос татаж авна.
 
 ### Эх код
 
@@ -194,9 +194,41 @@ p.interactive()
 
 Орчин үеийн ихэнх бодлого 64-bit байдаг. Өөрийн компьютер дээр бүтэн процессыг давтаж үзье.
 
+### Файлууд
+
+Бүх файл [`challenges/pwn/ret2text`](https://github.com/computer-communication-security-club/ctf-wiki/tree/main/challenges/pwn/ret2text) хавтсанд байна:
+
+| Файл | Тайлбар |
+|------|---------|
+| [`main.c`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/ret2text/main.c) | Эх код |
+| [`ret2text`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/ret2text/ret2text) | Бэлэн binary (Ubuntu 24.04 дээр compile хийсэн) |
+| [`Dockerfile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/ret2text/Dockerfile) | Challenge сервер (deploy) |
+| [`Makefile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/ret2text/Makefile) | `make run`, `make stop` |
+
+:::tip
+Бэлэн binary-г ашиглавал энэ хуудсан дээрх хаягууд (`objdump` гаралт гэх мэт) таных яг ижил гарна.
+Өөрөө `gcc`-ээр compile хийвэл compiler-ийн хувилбараас хамаарч хаяг өөр байж болно.
+:::
+
+Challenge-ийг сервер хэлбэрээр ажиллуулах (Docker хэрэгтэй):
+
+```console
+$ cd challenges/pwn/ret2text
+$ make run      # localhost:1337 дээр асна
+$ nc localhost 1337
+What is your name?
+$ make stop     # зогсоох
+```
+
+Repo татахгүйгээр бэлэн image-ийг шууд ажиллуулж болно:
+
+```console
+$ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-ret2text
+```
+
 ### Эх код ба compile
 
-```c title="ret2text.c"
+```c title="main.c"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -222,7 +254,7 @@ int main(void) {
 ```
 
 ```console
-$ gcc ret2text.c -o ret2text -fno-stack-protector -no-pie
+$ gcc main.c -o ret2text -fno-stack-protector -no-pie
 $ checksec --file=ret2text
     RELRO:      Partial RELRO
     Stack:      No canary found

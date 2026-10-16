@@ -1,0 +1,32 @@
+name: challenges
+on:
+  push:
+    branches: [main]
+    paths: ['challenges/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push images
+        run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          for dockerfile in challenges/*/*/Dockerfile; do
+            dir="$(dirname "$dockerfile")"
+            image="ghcr.io/$owner/$(basename "$(dirname "$dir")")-$(basename "$dir"):latest"
+            echo "::group::$image"
+            docker build -t "$image" \
+              --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+              "$dir"
+            docker push "$image"
+            echo "::endgroup::"
+          done
