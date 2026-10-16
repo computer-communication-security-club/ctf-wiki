@@ -16,6 +16,9 @@ export default defineConfig({
           { label: 'Нэр томъёо', slug: 'glossary' },
           { label: 'Хувь нэмэр', slug: 'contribute' },
         ]},
+        { label: 'Хэрэгсэл', items: [
+          { label: 'pwndbg үндэс', slug: 'tools/gdb' },
+        ]},
         { label: 'CTF', items: [
           { label: 'Pwn: Stack Overflow', items: [
             { label: 'ret2text', slug: 'pwn/ret2text' },

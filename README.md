@@ -1,49 +1,88 @@
-# Starlight Starter Kit: Basics
+# CTF Wiki
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+Монгол хэл дээрх CTF болон мэдээллийн аюулгүй байдлын суралцах материал.
+[Astro Starlight](https://starlight.astro.build) дээр бүтээсэн.
 
-```
-npm create astro@latest -- --template starlight
-```
+🌐 **Сайт:** https://computer-communication-security-club.github.io/ctf-wiki/
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro + Starlight project, you'll see the following folders and files:
+## Бүтэц
 
 ```
 .
-├── public/
+├── challenges/                 # Бодлогын файлууд (binary, Dockerfile)
+│   └── pwn/
+│       └── ret2text/
+│           ├── main.c          # Эх код
+│           ├── ret2text        # Бэлэн binary
+│           ├── flag.txt
+│           ├── Dockerfile      # Зөвхөн deploy (socat, порт 1337)
+│           └── Makefile        # make run / make stop
 ├── src/
-│   ├── assets/
 │   ├── content/
-│   │   └── docs/
+│   │   ├── docs/               # Wiki хуудсууд (.md)
+│   │   │   └── pwn/ret2text.md
+│   │   └── i18n/mn.json        # Сайтын UI-ийн Монгол орчуулга
 │   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+└── astro.config.mjs            # Sidebar, base path
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+## Локалд ажиллуулах
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+**Node.js 22.22 буюу түүнээс дээш** хувилбар шаардлагатай.
 
-Static assets, like favicons, can be placed in the `public/` directory.
+```sh
+npm install
+npm run dev        # http://localhost:4321/ctf-wiki/
+```
 
-## 🧞 Commands
+| Команд | Үйлдэл |
+|--------|--------|
+| `npm run dev` | Dev server асаана |
+| `npm run build` | `./dist/` руу production build хийнэ |
+| `npm run preview` | Build хийсэн сайтыг локалд үзнэ |
 
-All commands are run from the root of the project, from a terminal:
+> Хайлт (search) зөвхөн production build дээр ажиллана. Шалгахдаа `npm run build && npm run preview` ашигла.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+## Шинэ хуудас нэмэх
 
-## 👀 Want to learn more?
+1. `src/content/docs/<ангилал>/<сэдэв>.md` файл үүсгэ:
 
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+   ```md
+   ---
+   title: ret2text
+   description: Нэг өгүүлбэр тайлбар
+   ---
+   ```
+
+2. `astro.config.mjs`-ийн `sidebar` хэсэгт нэг мөр нэм:
+
+   ```js
+   { label: 'ret2text', slug: 'pwn/ret2text' },
+   ```
+
+3. Шинэ нэр томъёо гарвал `src/content/docs/glossary.md`-д нэм.
+
+Exploit скрипт зөвхөн хуудасны markdown дотор байна. `challenges/` хавтсанд скрипт оруулахгүй.
+
+## Шинэ бодлого нэмэх
+
+`challenges/<ангилал>/<нэр>/` хавтас үүсгээд дараах файлуудыг оруул:
+
+| Файл | Тайлбар |
+|------|---------|
+| `main.c` | Эх код |
+| `<нэр>` | Бэлэн binary — хуудсан дээрх хаягууд үүнтэй таарах ёстой |
+| `flag.txt` | Flag |
+| `Dockerfile` | Зөвхөн deploy: binary-г `socat`-аар порт `1337` дээр ажиллуулна |
+| `Makefile` | `make run`, `make stop` |
+
+`ret2text`-ийн файлуудыг загвар болгон хуул.
+
+```sh
+cd challenges/pwn/ret2text
+make run           # localhost:1337
+nc localhost 1337
+make stop
+```
+
+> Repo нээлттэй тул `flag.txt` хүн бүрт харагдана. Дасгалд зориулсан бодлогод л ашигла.

