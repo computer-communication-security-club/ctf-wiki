@@ -18,7 +18,7 @@ export default defineConfig({
         ]},
         { label: 'CTF', items: [
           { label: 'Pwn: Stack Overflow', items: [
-            { label: 'ret2text', slug: 'ctf/pwn/ret2text' },
+            { label: 'ret2text', slug: 'pwn/ret2text' },
           ]},
         ]},
       ],
