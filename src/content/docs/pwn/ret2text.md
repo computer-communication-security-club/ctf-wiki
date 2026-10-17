@@ -1,16 +1,16 @@
 ---
-title: ret2text
+title: ret2text (ret2win)
 description: Stack overflow ашиглан программын өөрийн код (.text) руу үсрэх хамгийн энгийн ROP арга.
 ---
 
-**ret2text** (return-to-text) нь stack overflow-оор функцийн **буцах хаяг (return address)**-ийг дарж бичээд,
+**ret2text** (return-to-text) нь **stack overflow** ашиглан функцийн **буцах хаяг (return address)**-ийг дарж бичээд,
 программ дотор **аль хэдийн байгаа** кодын хэсэг рүү үсрэх арга юм. Нэр нь ELF файлын `.text`
 хэсгээс гаралтай — программын машин код тэнд байрладаг.
 
 Ихэнх CTF бодлогод `win()`, `flag()`, `shell()` гэх мэт хэзээ ч дуудагддаггүй функц
 байдаг. Иймээс ret2text-ийг **ret2win** гэж бас нэрлэдэг.
 
-:::note[Урьдчилсан мэдлэг]
+:::note[Суурь мэдлэг]
 - C хэлний үндэс, `gets()`/`read()` зэрэг функц
 - x86-64 assembly-ийн суурь (`push`, `call`, `leave`, `ret`)
 - `gdb` (pwndbg эсвэл GEF) — анх удаа ашиглаж байвал [pwndbg үндэс](../tools/gdb/) хуудсыг уншаарай
