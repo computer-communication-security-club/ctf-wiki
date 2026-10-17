@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 352" width="504" height="422.4" role="img">
+<title>ret2shellcode: overflow хийсний дараах stack</title>
+<style>
+svg {
+  --bg: #f6f7f9; --border: #d5d9e0; --text: #403f53; --muted: #666b78; --box: #8a8f9a;
+  --red: #c41a1a; --yellow: #8a5a00; --green: #16794a; --magenta: #a3237a; --cyan: #00707a;
+}
+@media (prefers-color-scheme: dark) {
+  svg {
+    --bg: #23262f; --border: #3b404c; --text: #d6deeb; --muted: #8f97a8; --box: #7f8796;
+    --red: #ff7373; --yellow: #facc15; --green: #4ade80; --magenta: #d68cf0; --cyan: #22d3ee;
+  }
+}
+.card { fill: var(--bg); stroke: var(--border); }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 14px; }
+.sans { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; font-size: 13px; }
+.dir { fill: var(--text); font-weight: 700; }
+.muted { fill: var(--muted); }
+.box { stroke: var(--box); stroke-width: 1.2; }
+.ret { fill: var(--red); } .rbp { fill: var(--yellow); } .pad { fill: var(--green); } .sc { fill: var(--magenta); }
+rect.ret, rect.rbp, rect.pad, rect.sc { fill-opacity: .07; }
+.b { font-weight: 700; }
+.jump { fill: none; stroke: var(--cyan); stroke-width: 1.6; }
+.head { fill: var(--cyan); }
+.cyan { fill: var(--cyan); }
+</style>
+<rect class="card" x=".5" y=".5" width="419" height="351" rx="6"/>
+<text class="sans dir" x="48" y="30">↑ их хаяг</text>
+<text class="sans dir" x="48" y="324">↓ бага хаяг</text>
+<rect class="box ret" x="48" y="44" width="172" height="50"/>
+<text class="mono ret b" x="60" y="74.0">buf-ийн хаяг</text>
+<text class="mono ret" x="210" y="74.0" text-anchor="end">8 B</text>
+<text class="mono ret b" x="234" y="67.0">← rbp + 8</text>
+<text class="sans muted" x="252" y="84.0">return address</text>
+<rect class="box rbp" x="48" y="94" width="172" height="50"/>
+<text class="mono rbp" x="60" y="124.0">AAAAAAAA</text>
+<text class="mono rbp" x="210" y="124.0" text-anchor="end">8 B</text>
+<text class="mono rbp" x="234" y="117.0">← rbp</text>
+<text class="sans muted" x="252" y="134.0">saved rbp</text>
+<rect class="box pad" x="48" y="144" width="172" height="104"/>
+<text class="mono pad" x="60" y="201.0">AAAA … (padding)</text>
+<rect class="box sc" x="48" y="248" width="172" height="50"/>
+<text class="mono sc" x="60" y="278.0">shellcode</text>
+<text class="mono sc" x="210" y="278.0" text-anchor="end">48 B</text>
+<text class="mono sc" x="234" y="271.0">← buf = rbp − 0x100</text>
+<text class="sans muted" x="252" y="288.0">buf-ийн эхлэл</text>
+<path class="jump" d="M48 69.0 H30 V273.0 H39"/>
+<path class="head" d="M47 273.0 l-9 -5 v10 z"/>
+<text class="sans cyan b" x="22" y="171.0" text-anchor="middle" transform="rotate(-90 22 171.0)">ret хийхэд энд үсэрнэ</text>
+</svg>

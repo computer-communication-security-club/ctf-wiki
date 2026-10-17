@@ -57,6 +57,7 @@ export default defineConfig({
             ]},
             { label: 'Stack Overflow', items: [
               { label: 'ret2text', slug: 'pwn/ret2text' },
+              { label: 'ret2shellcode', slug: 'pwn/ret2shellcode' },
             ]},
           ]},
         ]},
