@@ -47,14 +47,7 @@ export default defineConfig({
         ]},
         { label: 'CTF', items: [
           { label: 'Pwn', items: [
-            { label: 'Суурь мэдлэг', items: [
-              { label: 'Calling convention', slug: 'pwn/basics/calling-convention' },
-              { label: 'Хамгаалалтууд', slug: 'pwn/basics/protections' },
-            ]},
-            { label: 'Хэрэгсэл', items: [
-              { label: 'pwndbg', slug: 'pwn/tools/gdb' },
-              { label: 'pwntools', slug: 'pwn/tools/pwntools' },
-            ]},
+            // pwn/basics/*, pwn/tools/* хуудсууд sidebar-т байхгүй ч URL-аар нээгдэнэ
             { label: 'Stack Overflow', items: [
               { label: 'ret2text', slug: 'pwn/ret2text' },
               { label: 'ret2shellcode', slug: 'pwn/ret2shellcode' },
