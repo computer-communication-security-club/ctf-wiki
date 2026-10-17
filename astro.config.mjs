@@ -42,9 +42,6 @@ export default defineConfig({
       locales: { root: { label: 'Монгол', lang: 'mn' } },
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/computer-communication-security-club/ctf-wiki' }],
       sidebar: [
-        { label: 'Эхлэл', items: [
-          { label: 'Танилцуулга', slug: 'index' },
-        ]},
         { label: 'CTF', items: [
           { label: 'Pwn', items: [
             // pwn/basics/*, pwn/tools/* хуудсууд sidebar-т байхгүй ч URL-аар нээгдэнэ
