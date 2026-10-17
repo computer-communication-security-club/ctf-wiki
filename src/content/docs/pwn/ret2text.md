@@ -366,7 +366,7 @@ Congrats! Here is your shell:
 $ cat flag.txt
 ```
 
-Ажиллавал сервер рүү ажиллуулна — скриптийг өөрчлөх шаардлагагүй:
+Сервер рүү нэмэлт `option` гүй ашиглаж болно. — скриптийг өөрчлөх шаардлагагүй:
 
 ```console
 $ ./exploit.py                    # make run-аар асаасан localhost:1337
@@ -386,7 +386,6 @@ Shell нээгдэхгүй байвал `./exploit.py LOCAL DEBUG`-ээр илг
 - `gets()`-ийг **хэзээ ч** бүү ашигла — `fgets(buf, sizeof(buf), stdin)` ашигла.
 - Stack canary (`-fstack-protector-strong`, ихэнх distro-д анхнаасаа идэвхтэй).
 - PIE + ASLR (`-pie`, мөн анхнаасаа идэвхтэй) — хаягийг таамаглахад хэцүү болгоно.
-- Шаардлагагүй "debug" функцийг (`system("/bin/sh")` гэх мэт) production код-д бүү үлдээ.
 
 ## Эх сурвалж
 
