@@ -47,6 +47,9 @@ export default defineConfig({
         ]},
         { label: 'CTF', items: [
           { label: 'Pwn', items: [
+            { label: 'Суурь мэдлэг', items: [
+              { label: 'Хамгаалалтууд', slug: 'pwn/basics/protections' },
+            ]},
             { label: 'Хэрэгсэл', items: [
               { label: 'pwndbg', slug: 'pwn/tools/gdb' },
               { label: 'pwntools', slug: 'pwn/tools/pwntools' },

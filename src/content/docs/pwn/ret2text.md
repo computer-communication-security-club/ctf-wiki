@@ -59,6 +59,8 @@ ret2text ажиллах нөхцөл:
 | PIE | **Байхгүй** (эсвэл хаяг leak хийсэн) | PIE байвал `.text`-ийн хаяг ажиллах бүрт өөрчлөгдөнө |
 | NX | Хамаагүй | Бид shellcode ажиллуулахгүй, байгаа кодыг л ашиглана |
 
+Хамгаалалт бүрийн дэлгэрэнгүйг [Хамгаалалтууд](../basics/protections/) хуудаснаас үзээрэй.
+
 ## Бодлого
 
 Бүх файл [`challenges/pwn/ret2text`](https://github.com/computer-communication-security-club/ctf-wiki/tree/main/challenges/pwn/ret2text) хавтсанд байна:
