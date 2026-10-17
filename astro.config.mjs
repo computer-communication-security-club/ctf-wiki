@@ -48,6 +48,7 @@ export default defineConfig({
         { label: 'CTF', items: [
           { label: 'Pwn', items: [
             { label: 'Суурь мэдлэг', items: [
+              { label: 'Calling convention', slug: 'pwn/basics/calling-convention' },
               { label: 'Хамгаалалтууд', slug: 'pwn/basics/protections' },
             ]},
             { label: 'Хэрэгсэл', items: [
