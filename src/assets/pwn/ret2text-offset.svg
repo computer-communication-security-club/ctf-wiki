@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410 236" width="492" height="283.2" role="img">
+<title>ret2text: buf-аас return address хүртэлх offset</title>
+<style>
+svg {
+  --bg: #f6f7f9; --border: #d5d9e0; --text: #403f53; --muted: #666b78; --box: #8a8f9a;
+  --red: #c41a1a; --yellow: #8a5a00; --green: #16794a; --magenta: #a3237a; --cyan: #00707a;
+}
+@media (prefers-color-scheme: dark) {
+  svg {
+    --bg: #23262f; --border: #3b404c; --text: #d6deeb; --muted: #8f97a8; --box: #7f8796;
+    --red: #ff7373; --yellow: #facc15; --green: #4ade80; --magenta: #d68cf0; --cyan: #22d3ee;
+  }
+}
+.card { fill: var(--bg); stroke: var(--border); }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 14px; }
+.sans { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; font-size: 13px; }
+.dir { fill: var(--text); font-weight: 700; }
+.muted { fill: var(--muted); }
+.box { stroke: var(--box); stroke-width: 1.2; }
+.ret { fill: var(--red); } .rbp { fill: var(--yellow); } .pad { fill: var(--green); } .sc { fill: var(--magenta); }
+rect.ret, rect.rbp, rect.pad, rect.sc { fill-opacity: .07; }
+.b { font-weight: 700; }
+.line { fill: none; stroke: var(--cyan); stroke-width: 1.6; }
+.bracket { fill: none; stroke: var(--red); stroke-width: 1.4; }
+.head { fill: var(--cyan); }
+.cyan { fill: var(--cyan); }
+</style>
+<rect class="card" x=".5" y=".5" width="409" height="235" rx="6"/>
+<rect class="box ret" x="112" y="24" width="172" height="50"/>
+<text class="mono ret b" x="124" y="54.0">return address</text>
+<rect class="box rbp" x="112" y="74" width="172" height="50"/>
+<text class="mono rbp" x="124" y="104.0">saved rbp</text>
+<text class="mono rbp" x="274" y="104.0" text-anchor="end">8 B</text>
+<rect class="box pad" x="112" y="124" width="172" height="88"/>
+<text class="mono pad" x="124" y="173.0">buf</text>
+<text class="mono pad" x="274" y="173.0" text-anchor="end">0x40 = 64 B</text>
+<text class="mono ret" x="102" y="79" text-anchor="end">rbp + 8</text>
+<text class="mono rbp" x="102" y="129" text-anchor="end">rbp</text>
+<text class="mono pad" x="102" y="217" text-anchor="end">rbp − 0x40</text>
+<path class="bracket" d="M290 74 H296 V212 H290"/>
+<text class="mono ret b" x="306" y="140.0">64 + 8 = 72</text>
+<text class="sans muted" x="306" y="158.0">байт (offset)</text>
+</svg>
