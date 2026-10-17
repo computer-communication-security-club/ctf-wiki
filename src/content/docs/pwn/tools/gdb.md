@@ -282,6 +282,154 @@ LEGEND: [33;49;22;23;24;27mSTACK[m | [34;49;22;23;24;27mHEAP[m | [31;49;22;
 
 `finish`-ийн дараа `rax`-д `add`-ийн буцаасан утга `0x5` (= 5) байна.
 
+## Pwn-д хэрэгтэй командууд
+
+Доорх командууд pwn бодлогод байнга хэрэг болно. Эхний хэдийг [ret2text](../../ret2text/) binary дээр үзүүлнэ.
+
+### distance — хоёр хаягийн зөрүү
+
+`distance a b` нь хоёр хаягийн хоорондох зайг (offset) шууд бодож өгнө — гараар тооцоолох шаардлагагүй.
+`vuln+34` дээр (`gets` дуудахын өмнө) зогсоход `rdi` = `buf`, return address нь `rbp+8`-д байна:
+
+```ansi
+[1;31mpwndbg>[0m distance $rdi $rbp+8
+[33m0x7fffffffde10[0m->[33m0x7fffffffde58[0m is 0x48 bytes (0x9 words)
+```
+
+`0x48` = **72** — энэ бол яг [ret2text-ийн offset](../../ret2text/#4-offset-олох). cyclic pattern ашиглахгүйгээр
+хоёр хаягийн зөрүүгээр offset-ийг шууд уншиж болно.
+
+### search — санах ойгоос хайх
+
+`search` нь санах ойгоос байт, тэмдэгт мөр, заагчийг хайна. ret2libc-д хэрэгтэй `/bin/sh` мөрийг хайх жишээ:
+
+```ansi
+[1;31mpwndbg>[0m search -t bytes "/bin/sh"
+Searching for byte: b'/bin/sh'
+[0mret2text       [0m [0m0x402022[0m 0x68732f6e69622f /* '/bin/sh' */
+[0mret2text       [0m [0m0x403022[0m 0x68732f6e69622f /* '/bin/sh' */
+[0mlibc.so.6      [0m [0m0x7ffff7ddb799[0m 0x68732f6e69622f /* '/bin/sh' */
+```
+
+`binary` болон `libc` дотроос олдлоо. Зөвхөн нэг хэсгээс хайх бол `search -t bytes "/bin/sh" libc` гэнэ.
+
+### retaddr — return address-ууд
+
+`retaddr` нь stack дээр return address агуулж буй бүх нүдийг олж харуулна. Overflow-оор дарах зорилтоо хурдан олоход тустай:
+
+```ansi
+[1;31mpwndbg>[0m retaddr
+[33m0x7fffffffde58[0m —▸ [31m0x401214 (main+43)[0m ◂— [38;5;148mlea[39m[38;5;255m [39m[38;5;81mrax[39m[38;5;255m,[39m[38;5;255m [39m[38;5;255m[[39m[38;5;81mrip[39m[38;5;255m [39m[38;5;255m+[39m[38;5;255m [39m[38;5;141m0xe22[39m[38;5;255m][39m
+[33m0x7fffffffde68[0m —▸ [31m0x7ffff7c2a601 (__libc_start_call_main+129)[0m ◂— [38;5;148mmov[39m[38;5;255m [39m[38;5;81medi[39m[38;5;255m,[39m[38;5;255m [39m[38;5;81meax[39m
+[33m0x7fffffffdf18[0m —▸ [31m0x7ffff7c2a718 (__libc_start_main+136)[0m ◂— [38;5;148mmov[39m[38;5;255m [39m[38;5;81mr14[39m[38;5;255m,[39m[38;5;255m [39m[38;5;81mqword[39m[38;5;255m [39m[38;5;81mptr[39m[38;5;255m [39m[38;5;255m[[39m[38;5;81mrip[39m[38;5;255m [39m[38;5;255m+[39m[38;5;255m [39m[38;5;141m0x1e7879[39m[38;5;255m][39m
+[33m0x7fffffffdf78[0m —▸ [31m0x4010d5 (_start+37)[0m ◂— [38;5;148mhlt[39m[38;5;255m [39m
+```
+
+Эхний мөр (`0x7fffffffde58 —▸ main+43`) нь `vuln` дуусахад буцах хаяг — бид үүнийг дарж бичнэ.
+
+### got — GOT-ийн төлөв
+
+`got` нь [GOT](../../basics/protections/#relro) хүснэгтийн төлөвийг харуулна: аль функцийн хаяг аль хэдийн дүүрсэн,
+RELRO ямар байгааг нэг дор харна.
+
+```ansi
+[1;31mpwndbg>[0m got
+Filtering out read-only entries (display them with -r or --show-readonly)
+
+State of the GOT of [35mret2text[0m:
+GOT protection: [33mPartial RELRO[0m | Found [33m4[0m GOT entries passing the filter
+[[35m0x404000[0m] [33mputs@GLIBC_2.2.5[0m -> [31m0x7ffff7c8e860 (puts)[0m ◂— [38;5;148mendbr64[39m
+[[35m0x404008[0m] [33msystem@GLIBC_2.2.5[0m -> [31m0x401040[0m ◂— [38;5;148mendbr64[39m
+[[35m0x404010[0m] [33mgets@GLIBC_2.2.5[0m -> [31m0x401050[0m ◂— [38;5;148mendbr64[39m
+[[35m0x404018[0m] [33msetvbuf@GLIBC_2.2.5[0m -> [31m0x7ffff7c8f2d0 (setvbuf)[0m ◂— [38;5;148mendbr64[39m
+```
+
+`Partial RELRO` тул GOT бичигдэх боломжтой. `-r` нэмбэл зөвхөн унших (read-only) нүднүүдийг ч харуулна.
+
+## Heap командууд
+
+pwndbg-ийн хамгийн хүчтэй тал нь **heap**-ийн төлөвийг харуулдагт бий. (Энэ wiki-д одоогоор heap бодлого байхгүй
+ч командуудыг танилцуулж байна.) Доорх жишээнд гурван chunk `malloc` хийгээд хоёрыг нь `free` хийсэн:
+
+```c title="heapdemo.c"
+char *a = malloc(0x18);  strcpy(a, "AAAA");
+char *b = malloc(0x28);  strcpy(b, "BBBB");
+char *c = malloc(0x18);  strcpy(c, "CCCC");
+free(a);
+free(c);
+```
+
+### heap — chunk-уудыг жагсаах
+
+`heap` нь heap дээрх бүх chunk-ийг дарааллаар нь харуулна — хаяг, хэмжээ, чөлөөлөгдсөн эсэх:
+
+```ansi
+[1;31mpwndbg>[0m heap
+[32mFree chunk (tcachebins)[0m | [33mPREV_INUSE[0m
+Addr: [34m0x405000[0m
+Size: 0x20 (with flag bits: 0x21)
+[91mfd[0m: 0x405
+
+[33mAllocated chunk[0m | [33mPREV_INUSE[0m
+Addr: [34m0x405020[0m
+Size: 0x30 (with flag bits: 0x31)
+
+[32mFree chunk (tcachebins)[0m | [33mPREV_INUSE[0m
+Addr: [34m0x405050[0m
+Size: 0x20 (with flag bits: 0x21)
+[91mfd[0m: 0x405415
+
+[33mAllocated chunk[0m | [33mPREV_INUSE[0m
+Addr: [34m0x405070[0m
+Size: 0x300 (with flag bits: 0x301)
+
+[31mTop chunk[0m | [33mPREV_INUSE[0m
+Addr: [34m0x405370[0m
+Size: 0x20c90 (with flag bits: 0x20c91)
+```
+
+`a` (`0x405000`) ба `c` (`0x405050`) **Free chunk (tcachebins)** болсон, `b` (`0x405020`) ашиглагдсаар байна.
+`Top chunk` нь heap-ийн үлдсэн чөлөөт зай.
+
+### bins — чөлөөт chunk-уудын жагсаалт
+
+`bins` нь чөлөөлөгдсөн chunk-ууд аль bin-д байгааг харуулна. Free хийсэн chunk эхлээд **tcache**-д ордог:
+
+```ansi
+[1;31mpwndbg>[0m bins
+[34mtcachebins[0m
+[33m0x20[0m[33m [  2][0m:  [34m0x405060[0m —▸ [34m0x405010[0m ◂— 0
+[34munsortedbin[0m
+[33mempty[0m
+[34msmallbins[0m
+[33mempty[0m
+[34mlargebins[0m
+[33mempty[0m
+```
+
+`0x20` хэмжээний tcache-д 2 chunk: `0x405060 —▸ 0x405010`. Энэ бол tcache-ийн нэг чиглэлтэй холбоост жагсаалт —
+сүүлд free хийсэн нь (`c`) эхэнд байна (LIFO).
+
+### vis — heap-ийг нүдээр харах
+
+`vis` (`vis-heap-chunks`) нь heap-ийн санах ойг байт байтаар, chunk бүрийг өөр өнгөөр харуулна:
+
+```ansi
+[1;31mpwndbg>[0m vis 3
+0x405000[33m	0x0000000000000000[0m[36m	0x0000000000000021[0m	[36m........!.......[0m
+0x405010[36m	0x0000000000000405[0m[36m	0x0902182e208c2eef[0m	[36m........... ....[0m	 <-- tcachebins[0x20][1/2]
+0x405020[36m	0x0000000000000000[0m[35m	0x0000000000000031[0m	[35m........1.......[0m
+0x405030[35m	0x0000000042424242[0m[35m	0x0000000000000000[0m	[35mBBBB............[0m
+0x405040[35m	0x0000000000000000[0m[35m	0x0000000000000000[0m	[35m................[0m
+0x405050[35m	0x0000000000000000[0m[32m	0x0000000000000021[0m	[32m........!.......[0m
+0x405060[32m	0x0000000000405415[0m[32m	0x0902182e208c2eef[0m	[32m.T@........ ....[0m	 <-- tcachebins[0x20][0/2]
+0x405070[32m	0x0000000000000000[0m	                  	[32m........[0m
+```
+
+Chunk бүрийн эхний 8 байт `prev_size`, дараагийн 8 байт `size` (`0x21` = 0x20 хэмжээ + `PREV_INUSE` бит).
+Free chunk-ийн `fd` талбарт tcache-ийн дараагийн chunk-ийн заагч хадгалагдана (`0x405415` — glibc 2.32+ дээр
+safe-linking-ээр "далдлагдсан" утга).
+
 ## Товч лавлах
 
 | Команд | Товч | Үйлдэл |
@@ -303,4 +451,9 @@ LEGEND: [33;49;22;23;24;27mSTACK[m | [34;49;22;23;24;27mHEAP[m | [31;49;22;
 | `backtrace` | `bt` | Дуудлагын стек |
 | `info registers` | `i r` | Регистрүүд |
 | `x/<n><f> <хаяг>` | | Санах ой унших |
+| `distance a b` | | Хоёр хаягийн зөрүү (offset) |
+| `search -t bytes "..."` | | Санах ойгоос хайх |
+| `retaddr` | | Stack дээрх return address-ууд |
+| `got` | | GOT хүснэгтийн төлөв |
+| `heap` / `bins` / `vis` | | Heap chunk, bin харах |
 | `quit` | `q` | Гарах |
