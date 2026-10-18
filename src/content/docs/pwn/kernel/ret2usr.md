@@ -189,6 +189,31 @@ offset = 0x120 − 0x10 = 0x110
 
 `0x110` байт бичээд дараагийн 8 байт return address-ийг дарна. **Stack canary байхгүй.**
 
+:::tip[gdb-ээр cyclic-оор олох]
+Disassemble уншихын оронд [userland](../../userland/ret2text/#4-offset-олох)-тай яг адил **cyclic pattern**-ээр ч
+offset-ийг олж болно. Pattern-ийг overflow-оор илгээхэд kernel `ret` хийх гэж буй утга нь pattern-ийн тодорхой
+хэсэг болно. (Module-ийн `.text` нь read-only тул software breakpoint биш **hardware breakpoint** `hbreak` хэрэглэнэ.)
+
+```ansi
+[1;31mpwndbg>[0m cyclic 0x200
+aaaabaaacaaadaaaeaaafaaagaaahaaaiaaaj...   [90m# давтагдашгүй pattern[0m
+[1;31mpwndbg>[0m hbreak *0xffffffffa0000098        [90m# vuln_ioctl-ийн ret (modtext+0x98)[0m
+Hardware assisted breakpoint 1 at [34m0xffffffffa0000098[0m
+[1;31mpwndbg>[0m continue
+[90m# VM дотор уг pattern-ийг CMD_STORE ioctl-оор илгээнэ (overflow)[0m
+
+Breakpoint 1, [34m0xffffffffa0000098[0m in [33mvuln_ioctl[0m ()
+[1;31mpwndbg>[0m x/gx $rsp                         [90m# ret авах гэж буй утга[0m
+[34m0xffffc900001a7f08[0m:	[34m0x6361617463616173[0m
+[1;31mpwndbg>[0m cyclic -l 0x63616173
+272
+```
+
+`cyclic -l 0x63616173` → **272** = `0x110` — disassemble-аас олсонтой яг ижил. (`0x6361617463616173`-ийн
+доод 4 байт нь `0x63616173`.) Хэрэв kernel шууд `ret` хийгээд уначихвал **Oops** дахь `RIP:` утгыг мөн адил
+`cyclic -l` хийж болно.
+:::
+
 ### 3. ret2usr санаа
 
 root болох хамгийн энгийн арга: kernel дотор `commit_creds(&init_cred)` дуудах. `init_cred` нь init процессын
