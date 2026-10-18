@@ -103,7 +103,7 @@ QEMU процесс SIGSEGV авч унахад **бүх VM зогсоно**. Э
 батлаж байна. Дараа нь уг OOB-ийг **хянамгай** ашиглаж escape болгоно.
 
 :::note
-Бодит ажилд санамсаргүй fuzzing-ийн оронд QEMU-ийн өөрийн [device fuzzer](https://qemu-project.gitlab.io/qemu/devel/fuzzing.html)
+Бодит ажилд санамсаргүй fuzzing-ийн оронд QEMU-ийн өөрийн [device fuzzer](https://www.qemu.org/docs/master/devel/testing/fuzzing.html)
 (libFuzzer дээр суурилсан, MMIO/PMIO/DMA-г coverage-удирдлагатай шиднэ) эсвэл Morion/Nyx зэргийг хэрэглэдэг.
 :::
 

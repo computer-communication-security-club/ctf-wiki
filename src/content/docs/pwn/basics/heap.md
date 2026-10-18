@@ -119,4 +119,4 @@ tcache-д байгаа chunk бүрт `key` талбар (chunk+8) тавьда�
 
 - [how2heap (shellphish)](https://github.com/shellphish/how2heap)
 - [glibc malloc internals (sploitfun)](https://sploitfun.wordpress.com/2015/02/10/understanding-glibc-malloc/)
-- [Safe-linking (Check Point)](https://research.checkpoint.com/2020/safe-linking-eliminating-a-seemingly-harmless-bug/)
+- [Safe-linking (Check Point)](https://research.checkpoint.com/2020/safe-linking-eliminating-a-20-year-old-malloc-exploit-primitive/)

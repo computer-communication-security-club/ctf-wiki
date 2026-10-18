@@ -94,5 +94,4 @@ pwndbg-ийн [`got`](../../tools/gdb/#got--got-ийн-төлөв) команд 
 
 ## Эх сурвалж
 
-- [ir0nstone — The GOT and PLT](https://ir0nstone.gitbook.io/notes/binexp/stack/the-got-and-plt)
-- [CTF Wiki — Relocation (GOT/PLT)](https://ctf-wiki.org/executable/elf/structure/overview/)
+- [ir0nstone — The GOT and PLT](https://ir0nstone.gitbook.io/notes/binexp/stack/got-overwrite)
