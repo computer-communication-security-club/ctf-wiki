@@ -41,7 +41,8 @@ stack overflow-оор return address-ийг **userland дахь өөрсдийн
 | [`vuln.c`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/kernel/ret2usr/vuln.c) | Эмзэг модулийн эх код |
 | [`bzImage`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/kernel/ret2usr/bzImage) | Бэлэн kernel |
 | [`rootfs.cpio.gz`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/kernel/ret2usr/rootfs.cpio.gz) | initramfs (BusyBox + `vuln.ko` + flag) |
-| [`run.sh`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/kernel/ret2usr/run.sh) | QEMU ачаалах |
+| [`run.sh`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/kernel/ret2usr/run.sh) | QEMU ачаалах (local) |
+| [`Dockerfile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/kernel/ret2usr/Dockerfile), [`start.sh`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/kernel/ret2usr/start.sh) | Сервер (remote) — base64 exploit хүлээн авна |
 
 Ажиллуулах (`qemu-system-x86_64` хэрэгтэй):
 
@@ -55,15 +56,26 @@ uid=1000 gid=1000
 cat: can't open '/root/flag.txt': Permission denied
 ```
 
-Exploit-ээ VM-д оруулахын тулд `run.sh`-д дамжуулна (rootfs-д `/exploit` болгон нэмнэ):
+Exploit-ээ VM-д оруулахын тулд `run.sh`-д дамжуулна (rootfs-д `/exploit` болгон нэмж **автоматаар ажиллуулна**):
 
 ```console
 $ gcc -static -o exploit exploit.c
-$ ./run.sh exploit         # VM дотор /exploit гэж ажиллуулна
+$ ./run.sh exploit
+```
+
+**Сервер (remote) хувилбар.** Challenge-ийг Docker image хэлбэрээр ажиллуулж болно. Холбогдоход сервер
+exploit-ийг **base64**-ээр хүлээж авч rootfs-д нэмээд QEMU-г ачаална:
+
+```console
+$ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-ret2usr
+# өөр terminal дээр — exploit-ээ base64-ээр илгээж, shell-тэй харилцана:
+$ gcc -static -o exploit exploit.c
+$ { base64 -w0 exploit; echo; cat; } | nc localhost 1337
 ```
 
 :::tip[gdb-ээр debug хийх]
 `run.sh`-ийн qemu мөрөнд `-s` нэмбэл QEMU `localhost:1234` дээр gdb server нээнэ. `target remote :1234`-ээр холбогдоно.
+Серверт KVM шаардлагагүй — QEMU нь TCG (software) горимд ажиллана.
 :::
 
 :::caution[Spoiler]
@@ -331,7 +343,7 @@ int main(void) {
 $ gcc -static -o exploit exploit.c
 $ ./run.sh exploit
 ...
-/ $ /exploit
+[ /dev/vuln ready; эрхгүй хэрэглэгч (uid 1000) ]
 [*] overflow илгээж байна (CMD_STORE)...
 [+] root авлаа!
 / # id
