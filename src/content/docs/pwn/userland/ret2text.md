@@ -65,17 +65,7 @@ ret2text ажиллах нөхцөл:
 Өөрөө `gcc`-ээр compile хийвэл compiler-ийн хувилбараас хамаарч хаяг өөр байж болно.
 :::
 
-Challenge-ийг сервер хэлбэрээр ажиллуулах (Docker хэрэгтэй):
-
-```console
-$ cd challenges/pwn/userland/ret2text
-$ make run      # localhost:1337 дээр асна
-$ nc localhost 1337
-What is your name?
-$ make stop     # зогсоох
-```
-
-Repo татахгүйгээр бэлэн image-ийг шууд ажиллуулж болно:
+**Docker-ээр (сервер).** Бэлэн image GitHub (ghcr)-д байгаа. Татаж ажиллуулна:
 
 ```console
 $ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-ret2text
@@ -407,7 +397,7 @@ $ cat flag.txt
 Сервер рүү нэмэлт `option` гүй ашиглаж болно. — скриптийг өөрчлөх шаардлагагүй:
 
 ```console
-$ ./exploit.py                    # make run-аар асаасан localhost:1337
+$ ./exploit.py                    # docker сервер: localhost:1337
 $ ./exploit.py HOST=ctf.example.com PORT=31337
 ```
 

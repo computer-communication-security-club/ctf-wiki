@@ -112,7 +112,7 @@ $ ./exploit.py HOST=ctf.example.com PORT=31337
 | `EXE=...` | Өөр binary ашиглана |
 
 :::caution
-`LOCAL`-гүйгээр ажиллуулбал template **remote** горимд орно. `make run`-аар сервер асаагаагүй бол
+`LOCAL`-гүйгээр ажиллуулбал template **remote** горимд орно. сервер асаагаагүй бол
 `Could not connect to localhost on port 1337` алдаа гарна.
 :::
 

@@ -67,18 +67,7 @@ ret2text-тэй харьцуулахад хоёр шинэ асуудал гар
 Харин stack-ийн хаяг (`buf: 0x7ff...`) ASLR-ийн улмаас ажиллуулах бүрт өөр гарна — энэ нь хэвийн.
 :::
 
-Challenge-ийг сервер хэлбэрээр ажиллуулах (Docker хэрэгтэй):
-
-```console
-$ cd challenges/pwn/userland/ret2shellcode
-$ make run      # localhost:1337 дээр асна
-$ nc localhost 1337
-buf: 0x7fffaab828b0
-What is your name?
-$ make stop     # зогсоох
-```
-
-Repo татахгүйгээр бэлэн image-ийг шууд ажиллуулж болно:
+**Docker-ээр (сервер).** Бэлэн image GitHub (ghcr)-д байгаа. Татаж ажиллуулна:
 
 ```console
 $ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-ret2shellcode
@@ -435,7 +424,7 @@ FLAG{ret2shellcode}
 Сервер рүү скриптийг өөрчлөлгүй ажиллуулна:
 
 ```console
-$ ./exploit.py                    # make run-аар асаасан localhost:1337
+$ ./exploit.py                    # docker сервер: localhost:1337
 $ ./exploit.py HOST=ctf.example.com PORT=31337
 ```
 
