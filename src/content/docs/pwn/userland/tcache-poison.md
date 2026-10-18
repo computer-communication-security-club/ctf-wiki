@@ -1,7 +1,6 @@
 ---
 title: Heap (tcache poisoning)
 description: glibc heap-ийн суурь — chunk, tcache, use-after-free. UAF-аар libc болон heap хаягийг leak хийж, tcache poisoning-оор GOT дарж system дуудна.
-pagefind: false
 ---
 
 **Heap** нь `malloc`/`free`-ийн динамик санах ой. glibc-ийн **use-after-free (UAF)** алдааг ашиглан
@@ -38,7 +37,7 @@ Notes цэсний программ — `add` / `edit` / `show` / `delete`. Ал
 |------|---------|
 | [`main.c`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/userland/tcache-poison/main.c) | Эх код (UAF) |
 | [`heap`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/tcache-poison/heap) | Бэлэн binary |
-| [`libc.so.6`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/tcache-poison/libc.so.6), [`ld-...`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/tcache-poison/ld-linux-x86-64.so.2) | Зориулалтын libc (offset-ууд таарна) |
+| [`libc.so.6`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/tcache-poison/libc.so.6), [`ld-...`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/tcache-poison/ld-linux-x86-64.so.2) | Зориулалтын libc (offset таарна; [pwninit](../../tools/pwninit/) автоматжуулна) |
 
 ```console
 $ checksec --file=./heap
@@ -48,7 +47,7 @@ $ checksec --file=./heap
    PIE: No PIE               # GOT-ийн хаяг тогтмол
 ```
 
-**Docker-ээр (сервер).** Бэлэн image GitHub (ghcr)-д байгаа (`pwn-<challenge нэр>`). Татаж ажиллуулна:
+**Docker-ээр (сервер).** Бэлэн image GitHub (ghcr)-д байгаа. Татаж ажиллуулна:
 
 ```console
 $ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-tcache-poison:latest

@@ -9,7 +9,7 @@ description: NX унтраалттай binary-д stack overflow ашиглан �
 [ret2text](../ret2text/)-д программ дотор бэлэн `win()` функц байсан. Энд ийм функц **байхгүй** — shell нээх кодыг
 бид өөрсдөө payload дотроо авчирна. Ихэнх shellcode `/bin/sh` (shell) нээдэг тул ийм нэртэй болсон.
 
-:::note[Суурь мэдлэг]
+:::note[Юуны өмнө]
 - [ret2text](../ret2text/) — stack overflow, offset олох, return address дарж бичих
 - [Хамгаалалтууд](../../basics/protections/#nx) хуудасны NX ба ASLR хэсэг
 - [Calling convention](../../basics/calling-convention/#syscall) хуудасны Syscall хэсэг — shellcode `execve` syscall дууддаг

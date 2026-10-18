@@ -10,7 +10,7 @@ description: printf() format string эмзэг байдлаар санах ой 
 Энэ бодлогод `win()` функц **байхгүй**. Иймээс **ret2libc**-тэй адил libc доторх `system`-ийг
 дуудна. Гол санаа: `exit@got`-ийг дарж бичиж **давталт** үүсгээд, format string-ийг хэд хэдэн удаа ашиглана.
 
-:::note[Суурь мэдлэг]
+:::note[Юуны өмнө]
 - [ret2text](../ret2text/); [GOT ба PLT](../../basics/got-plt/) (бид GOT дарж бичнэ), [RELRO](../../basics/protections/#relro); [ASLR](../../basics/protections/#aslr), [NX](../../basics/protections/#nx)
 - [pwndbg](../../tools/gdb/) ([got](../../tools/gdb/#got--got-ийн-төлөв) команд), [pwntools](../../tools/pwntools/)
 :::
@@ -59,17 +59,14 @@ format мөр** болж, `%`-тэй тохиолдол бүрт stack дээр�
 | [`Makefile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/userland/fmtstr/Makefile) | `make run`, `make stop` |
 
 :::caution[libc-ийн хувилбар]
-`system`-ийн offset нь libc-ийн хувилбараас хамаарна. Challenge нь ашигладаг `libc.so.6`-оо хамт тараадаг бөгөөд
-binary нь `rpath`-аар зассан тул энэ libc-ийг (өөрийн машины libc биш) ачаална. **Challenge хавтаснаасаа**
-ажиллуулаарай ([ldd ./fmtstr](../../tools/gdb/) → `libc.so.6 => ./libc.so.6`).
+`system` зэргийн offset нь libc хувилбараас хамаарна. Challenge `libc.so.6`-оо тараадаг —
+[pwninit](../../tools/pwninit/)-ээр binary-г тэр libc руу тохируулна.
 :::
 
+**Docker-ээр (сервер).** Бэлэн image GitHub (ghcr)-д байгаа. Татаж ажиллуулна:
+
 ```console
-$ cd challenges/pwn/userland/fmtstr
-$ make run      # localhost:1337 дээр асна
-$ nc localhost 1337
-What is your name?
-$ make stop
+$ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-fmtstr:latest
 ```
 
 :::caution[Spoiler]

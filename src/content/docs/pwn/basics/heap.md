@@ -1,7 +1,6 @@
 ---
 title: Heap — chunk, bins, tcache
 description: glibc malloc-ийн дотоод бүтэц — chunk, free хийсэн chunk-уудыг хадгалдаг bins (tcache, fastbin, unsorted, small, large), tcache хэрхэн ажилладаг, safe-linking.
-pagefind: false
 ---
 
 Heap pwn эхлэхийн өмнө glibc-ийн `malloc`/`free` санах ойг хэрхэн удирддагийг ойлгох хэрэгтэй. Энэ хуудас

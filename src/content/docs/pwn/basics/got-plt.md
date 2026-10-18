@@ -7,7 +7,7 @@ description: Dynamic linking дэх GOT (Global Offset Table) ба PLT (Procedur
 libc нь тусдаа файл бөгөөд ажиллах үед, [ASLR](../protections/#aslr)-ийн улмаас санамсаргүй хаягт ачаалагддаг.
 Энэ асуудлыг **GOT** ба **PLT** гэсэн хоёр хүснэгт шийддэг.
 
-:::note[Суурь мэдлэг]
+:::note[Юуны өмнө]
 - [Calling convention](../calling-convention/), [pwndbg](../../tools/gdb/)
 :::
 

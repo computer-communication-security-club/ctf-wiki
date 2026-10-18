@@ -316,7 +316,8 @@ payload += p64(ret)              # stack alignment
 payload += p64(exe.sym.system)
 ```
 
-pwntools-ийн `ROP` класс эдгээр gadget-ийг өөрөө олж тавьдаг ([pwntools](../../tools/pwntools/)).
+pwntools-ийн `ROP` класс эдгээр gadget-ийг өөрөө олж тавьдаг ([pwntools](../../tools/pwntools/)); gadget-ийг
+гараар хайхад [ropper](../../tools/ropper/) ашиглана.
 
 ## Syscall
 

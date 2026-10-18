@@ -56,10 +56,9 @@ export default defineConfig({
               { label: 'Format string', items: [
                 { label: 'Format string', slug: 'pwn/userland/format-string' },
               ]},
-              // Heap-ийг production-д нуух (хянаж байгаа); dev дээр харагдана
-              ...(hideExperimental ? [] : [{ label: 'Heap', items: [
+              { label: 'Heap', items: [
                 { label: 'tcache poisoning', slug: 'pwn/userland/tcache-poison' },
-              ]}]),
+              ]},
             ]},
             ...(hideExperimental ? [] : [
               { label: 'Kernel', items: [
