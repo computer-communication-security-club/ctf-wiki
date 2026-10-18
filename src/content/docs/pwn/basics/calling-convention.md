@@ -247,7 +247,7 @@ pwn-д хэрэгтэй хоёр зүйл:
 `0x7fffffffd698`.
 
 Exploit-д функцийг `call`-аар биш `ret`-ээр эхлүүлдэг тул энэ тэнцвэр 8 байтаар алдагдаж болно. glibc-ийн `system()`
-доторх `movaps` заавар тэгшлэгдээгүй хаяг дээр `SIGSEGV` өгдөг. Шийдэл нь нэмэлт `ret` gadget —
+доторх `movaps` заавар тэгшлэгдээгүй хаяг дээр `SIGSEGV` өгдөг. Бодолт нь нэмэлт `ret` gadget —
 [ret2text](../../userland/ret2text/)-ийн "Stack alignment" алхамд жишээтэй.
 
 ## 32-bit (cdecl)
@@ -316,7 +316,7 @@ payload += p64(ret)              # stack alignment
 payload += p64(exe.sym.system)
 ```
 
-pwntools-ийн `ROP` класс эдгээр gadget-ийг өөрөө олж тавьдаг ([pwntools үндэс](../../tools/pwntools/)).
+pwntools-ийн `ROP` класс эдгээр gadget-ийг өөрөө олж тавьдаг ([pwntools](../../tools/pwntools/)).
 
 ## Syscall
 

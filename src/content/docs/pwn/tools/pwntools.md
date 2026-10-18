@@ -1,5 +1,5 @@
 ---
-title: pwntools үндэс
+title: pwntools
 description: pwn template-ээр exploit бэлдэц үүсгэх, process/remote-той харилцах, p64/flat, ELF, cyclic, ROP зэрэг pwntools-ийн үндсэн хэрэгслүүд.
 ---
 

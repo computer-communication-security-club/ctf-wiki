@@ -1,5 +1,5 @@
 ---
-title: pwndbg үндэс
+title: pwndbg
 description: pwndbg (gdb)-ээр функц харах, disassemble хийх, хаяг олох, регистр ба stack харах үндсэн командууд.
 ---
 

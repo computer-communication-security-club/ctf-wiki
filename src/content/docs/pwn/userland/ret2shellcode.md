@@ -88,7 +88,7 @@ $ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-
 Доорх хэсэгт бодолт байгаа. Эхлээд өөрөө оролдоод үзээрэй!
 :::
 
-## Шийдэл
+## Бодолт
 
 ### 1. Эх код
 

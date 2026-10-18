@@ -13,8 +13,8 @@ description: Stack overflow ашиглан программын өөрийн к�
 :::note[Суурь мэдлэг]
 - C хэлний үндэс, `gets()`/`read()` зэрэг функц
 - x86-64 assembly-ийн суурь (`push`, `call`, `leave`, `ret`)
-- `gdb` (pwndbg эсвэл GEF) — анх удаа ашиглаж байвал [pwndbg үндэс](../../tools/gdb/) хуудсыг уншаарай
-- Python-ий `pwntools` — анх удаа ашиглаж байвал [pwntools үндэс](../../tools/pwntools/) хуудсыг уншаарай
+- `gdb` (pwndbg эсвэл GEF) — анх удаа ашиглаж байвал [pwndbg](../../tools/gdb/) хуудсыг уншаарай
+- Python-ий `pwntools` — анх удаа ашиглаж байвал [pwntools](../../tools/pwntools/) хуудсыг уншаарай
 :::
 
 ## Санаа
@@ -85,7 +85,7 @@ $ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-
 Доорх хэсэгт бодолт байгаа. Эхлээд өөрөө оролдоод үзээрэй!
 :::
 
-## Шийдэл
+## Бодолт
 
 ### 1. Эх код
 
@@ -323,7 +323,7 @@ payload = b'A' * 72 + p64(exe.sym.win)
 glibc-ийн `system()` дотор `movaps` заавар байдаг бөгөөд тэгшлэгдээгүй хаяг дээр унадаг.
 Бид функцийг `call`-аар биш `ret`-ээр эхлүүлсэн тул stack 8 байтаар зөрсөн.
 
-Шийдэл: `win`-ийн өмнө нэг **`ret` gadget** нэмэх. Энэ нь юу ч хийхгүй, зөвхөн stack-ийг 8 байтаар
+Бодолт: `win`-ийн өмнө нэг **`ret` gadget** нэмэх. Энэ нь юу ч хийхгүй, зөвхөн stack-ийг 8 байтаар
 шилжүүлж тэгшилнэ.
 
 :::tip
@@ -333,7 +333,7 @@ glibc-ийн `system()` дотор `movaps` заавар байдаг бөгөө
 
 ### 6. Exploit
 
-`pwn template`-ээр бэлдэц үүсгэнэ (дэлгэрэнгүйг [pwntools үндэс](../../tools/pwntools/#pwn-template) хуудаснаас):
+`pwn template`-ээр бэлдэц үүсгэнэ (дэлгэрэнгүйг [pwntools](../../tools/pwntools/#pwn-template) хуудаснаас):
 
 ```console
 $ pwn template ./ret2text --host localhost --port 1337 --quiet > exploit.py

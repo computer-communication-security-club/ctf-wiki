@@ -8,7 +8,7 @@ libc нь тусдаа файл бөгөөд ажиллах үед, [ASLR](../pr
 Энэ асуудлыг **GOT** ба **PLT** гэсэн хоёр хүснэгт шийддэг.
 
 :::note[Суурь мэдлэг]
-- [Calling convention](../calling-convention/), [pwndbg](../../tools/gdb/) үндэс
+- [Calling convention](../calling-convention/), [pwndbg](../../tools/gdb/)
 :::
 
 ## Хоёр хүснэгт
