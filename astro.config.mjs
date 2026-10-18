@@ -48,6 +48,9 @@ export default defineConfig({
               { label: 'ret2text', slug: 'pwn/ret2text' },
               { label: 'ret2shellcode', slug: 'pwn/ret2shellcode' },
             ]},
+            { label: 'Format string', items: [
+              { label: 'Format string', slug: 'pwn/format-string' },
+            ]},
           ]},
         ]},
       ],

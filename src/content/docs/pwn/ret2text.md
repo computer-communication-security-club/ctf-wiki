@@ -430,3 +430,4 @@ Shell нээгдэхгүй байвал `./exploit.py LOCAL DEBUG`-ээр илг
 - [CTF Wiki — Basic ROP: ret2text](https://ctf-wiki.org/pwn/linux/user-mode/stackoverflow/x86/basic-rop/#ret2text)
 - [ir0nstone — ret2win](https://ir0nstone.gitbook.io/notes/binexp/stack/ret2win)
 - [ir0nstone — De Bruijn Sequences](https://ir0nstone.gitbook.io/notes/binexp/stack/de-bruijn-sequences)
+- [Phrack #49 — Smashing The Stack For Fun And Profit](https://phrack.org/issues/49/smashing-the-stack-for-fun-and-profit) (Aleph One, 1996) — stack overflow-ийн сонгодог эх сурвалж
