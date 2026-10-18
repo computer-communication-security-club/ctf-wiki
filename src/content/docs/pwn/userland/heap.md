@@ -48,6 +48,12 @@ $ checksec --file=./heap
    PIE: No PIE               # GOT-ийн хаяг тогтмол
 ```
 
+**Docker-ээр (сервер).** Бэлэн image GitHub (ghcr)-д байгаа (`pwn-<challenge нэр>`). Татаж ажиллуулна:
+
+```console
+$ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-heap:latest
+```
+
 ## Бодолт
 
 ### 0. Бэлдэц
@@ -320,31 +326,6 @@ $ ./exploit.py LOCAL
 uid=1000(ctf) ...
 flag{h34p_tc4che_p01s0n_g0t_0verwr1te}
 ```
-
-## Ажиллуулах
-
-**Локал binary-тай:**
-
-```console
-$ cd challenges/pwn/userland/heap
-$ ./exploit.py LOCAL
-```
-
-**Docker серверийн эсрэг.** `main`-д push хийх бүрт CI нь image-ийг
-`ghcr.io/computer-communication-security-club/pwn-<нэр>:latest` руу нийтэлдэг (`<нэр>` = challenge-ийн
-хавтасны нэр, энд `heap`). GitHub-аас бэлэн image татаж ажиллуулж болно:
-
-```console
-$ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-heap:latest
-# эсвэл эх кодоос: make run
-$ ./exploit.py HOST=localhost PORT=1337
-```
-
-:::note
-`docker run` нь image-ийг автоматаар татна (`docker pull ...` гэж тусад нь ч болно). Хэрэв package нь
-**private** бол эхлээд нэвтэрнэ: `docker login ghcr.io -u <github-хэрэглэгч>` (GitHub PAT, `read:packages` эрхтэй).
-:::
-
 
 ## Хамгаалалт
 
