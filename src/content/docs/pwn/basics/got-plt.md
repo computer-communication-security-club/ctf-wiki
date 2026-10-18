@@ -32,7 +32,7 @@ int main(void) {
 }
 ```
 
-`puts`-ийг дуудахдаа компилятор шууд libc руу биш, **PLT** руу `call` хийдэг:
+`puts`-ийг дуудахдаа compiler шууд libc руу биш, **PLT** руу `call` хийдэг:
 
 ```console
 $ objdump -d -M intel demo
@@ -66,10 +66,10 @@ GOT-д хаяг **анхнаасаа бичээстэй байдаггүй** —
 gdb-ээр `puts@got`-ийн утгыг эхэнд болон эхний дуудлагын дараа харьцуулъя:
 
 ```ansi
-[1;31mpwndbg>[0m x/gx 0x404000     [90m# puts@got, main эхлэхэд[0m
-0x404000:    [34m0x0000000000401030[0m     [90m# PLT дотор буцаж заана (resolver stub)[0m
-[1;31mpwndbg>[0m x/gx 0x404000     [90m# эхний puts() дуудлагын дараа[0m
-0x404000:    [34m0x00007ffff7c8e860[0m     [90m# libc дахь puts-ийн жинхэнэ хаяг[0m
+[1;31mpwndbg>[0m x/gx 0x404000     [90m# puts@got, main эхлэхэд[0m
+0x404000:    [34m0x0000000000401030[0m     [90m# PLT дотор буцаж заана (resolver stub)[0m
+[1;31mpwndbg>[0m x/gx 0x404000     [90m# эхний puts() дуудлагын дараа[0m
+0x404000:    [34m0x00007ffff7c8e860[0m     [90m# libc дахь puts-ийн жинхэнэ хаяг[0m
 ```
 
 - **Эхэнд:** `puts@got` = `0x401030` — PLT доторх resolver stub руу заана. Энэ stub reloc-ийн дугаарыг `push`

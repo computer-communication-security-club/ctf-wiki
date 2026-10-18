@@ -18,9 +18,9 @@ const ansiColors = {
   },
 };
 
-// ret2usr-ийг зөвхөн local dev дээр харуулна; production build (`astro build`)-д sidebar-аас нууна.
-// (Хуудас өөрөө build хэвээр тул URL-аар нээгдэнэ.)
-const hideKernel = process.argv.includes('build');
+// Туршилтын сэдвүүдийг (Kernel, Hypervisor) зөвхөн local dev дээр харуулна; production build
+// (`astro build`)-д sidebar-аас нууна. (Хуудас өөрөө build хэвээр тул URL-аар нээгдэнэ.)
+const hideExperimental = process.argv.includes('build');
 
 export default defineConfig({
   site: 'https://ctf-wiki.sict-ccs.club',
@@ -56,10 +56,19 @@ export default defineConfig({
               { label: 'Format string', items: [
                 { label: 'Format string', slug: 'pwn/userland/format-string' },
               ]},
+              // Heap-ийг production-д нуух (хянаж байгаа); dev дээр харагдана
+              ...(hideExperimental ? [] : [{ label: 'Heap', items: [
+                { label: 'tcache poisoning', slug: 'pwn/userland/heap' },
+              ]}]),
             ]},
-            ...(hideKernel ? [] : [{ label: 'Kernel', items: [
-              { label: 'ret2usr', slug: 'pwn/kernel/ret2usr' },
-            ]}]),
+            ...(hideExperimental ? [] : [
+              { label: 'Kernel', items: [
+                { label: 'ret2usr', slug: 'pwn/kernel/ret2usr' },
+              ]},
+              { label: 'Hypervisor', items: [
+                { label: 'VM escape', slug: 'pwn/hypervisor/vm-escape' },
+              ]},
+            ]),
           ]},
         ]},
       ],

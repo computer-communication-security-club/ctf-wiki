@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 352" width="660" height="352" role="img">
+<title>ret2usr escalation flow</title>
+<style>
+svg{--bg:#f6f7f9;--border:#d5d9e0;--text:#403f53;--muted:#666b78;--box:#8a8f9a;--red:#c41a1a;--green:#16794a;--cyan:#00707a;}
+@media (prefers-color-scheme:dark){svg{--bg:#23262f;--border:#3b404c;--text:#d6deeb;--muted:#8f97a8;--box:#7f8796;--red:#ff7373;--green:#4ade80;--cyan:#22d3ee;}}
+.card{fill:var(--bg);stroke:var(--border);}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;}
+.sans{font-family:system-ui,sans-serif;font-size:11.5px;}
+.lbl{fill:var(--text);font-weight:700;}.muted{fill:var(--muted);}
+.k{fill:var(--red);fill-opacity:.10;stroke:var(--red);stroke-width:1.4;}
+.u{fill:var(--cyan);fill-opacity:.09;stroke:var(--cyan);stroke-width:1.3;}
+.w{fill:var(--green);fill-opacity:.10;stroke:var(--green);stroke-width:1.4;}
+.tk{fill:var(--red);}.tu{fill:var(--cyan);}.tw{fill:var(--green);}
+.arr{fill:none;stroke:var(--muted);stroke-width:1.6;}
+</style>
+<rect class="card" x=".5" y=".5" width="659" height="351" rx="6"/>
+<text class="sans lbl" x="16" y="30">ret2usr: дарагдсан return address → userland дахь escalate → root</text>
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6" fill="none" stroke="var(--muted)" stroke-width="1.4"/></marker></defs>
+<rect class="k" x="150" y="58" width="320" height="46" rx="5"/>
+<text class="mono tk lbl" x="162" y="77">vuln_ioctl `ret`</text>
+<text class="mono tk" x="162" y="95">дарагдсан return address → userland руу</text>
+<text class="sans muted" x="482" y="86">ring 0 хэвээр (SMEP унтраалттай)</text>
+<path class="arr" marker-end="url(#a)" d="M310 104 L310 127"/>
+<rect class="u" x="150" y="130" width="320" height="46" rx="5"/>
+<text class="mono tu lbl" x="162" y="149">escalate()  [userland код]</text>
+<text class="mono tu" x="162" y="167">commit_creds(&amp;init_cred)</text>
+<text class="sans muted" x="482" y="158">процессын cred-ийг root болгоно</text>
+<path class="arr" marker-end="url(#a)" d="M310 176 L310 199"/>
+<rect class="u" x="150" y="202" width="320" height="46" rx="5"/>
+<text class="mono tu lbl" x="162" y="221">swapgs; iretq</text>
+<text class="mono tu" x="162" y="239">userland руу цэвэрхэн буцна</text>
+<text class="sans muted" x="482" y="230">save_state()-ийн cs/ss/rsp/rflags</text>
+<path class="arr" marker-end="url(#a)" d="M310 248 L310 271"/>
+<rect class="w" x="150" y="274" width="320" height="46" rx="5"/>
+<text class="mono tw lbl" x="162" y="293">win()  [userland, uid 0]</text>
+<text class="mono tw" x="162" y="311">system("/bin/sh")</text>
+<text class="sans muted" x="482" y="302">одоо root shell!</text>
+</svg>

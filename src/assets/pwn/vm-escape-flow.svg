@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 424" width="660" height="424" role="img">
+<title>VM escape: guest MMIO write -> hijacked on_trigger -> edu_win on host</title>
+<style>
+svg{--bg:#f6f7f9;--border:#d5d9e0;--text:#403f53;--muted:#666b78;--box:#8a8f9a;--red:#c41a1a;--cyan:#00707a;--green:#16794a;}
+@media (prefers-color-scheme:dark){svg{--bg:#23262f;--border:#3b404c;--text:#d6deeb;--muted:#8f97a8;--box:#7f8796;--red:#ff7373;--cyan:#22d3ee;--green:#4ade80;}}
+.card{fill:var(--bg);stroke:var(--border);}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;}
+.sans{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:11.5px;}
+.lbl{fill:var(--text);font-weight:700;}.muted{fill:var(--muted);}
+.guest{fill:var(--cyan);fill-opacity:.09;stroke:var(--cyan);stroke-width:1.3;}
+.host{fill:var(--red);fill-opacity:.10;stroke:var(--red);stroke-width:1.4;}
+.mid{fill:var(--box);fill-opacity:.07;stroke:var(--box);stroke-width:1.2;}
+.tcy{fill:var(--cyan);}.tred{fill:var(--red);}.ttx{fill:var(--text);}
+.arr{fill:none;stroke:var(--muted);stroke-width:1.6;}
+</style>
+<rect class="card" x=".5" y=".5" width="659" height="423" rx="6"/>
+<text class="sans lbl" x="16" y="30">VM escape урсгал — guest-ийн нэг MMIO бичилт host дээр код ажиллуулах хүртэл</text>
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6" fill="none" stroke="var(--muted)" stroke-width="1.4"/></marker></defs>
+<rect class="guest" x="150" y="58" width="300" height="46" rx="5"/>
+<text class="mono tcy lbl" x="162" y="77">Guest userland</text>
+<text class="mono tcy" x="162" y="95">write64(bar0 + 0x110, 1)</text>
+<text class="sans muted" x="462" y="86">эрхгүй ч бай — зүгээр нэг MMIO бичилт</text>
+<path class="arr" marker-end="url(#a)" d="M300 104 L300 127"/>
+<rect class="mid" x="150" y="130" width="300" height="46" rx="5"/>
+<text class="mono ttx lbl" x="162" y="149">VM exit (MMIO)</text>
+<text class="mono ttx" x="162" y="167">CPU → hypervisor руу гарна</text>
+<path class="arr" marker-end="url(#a)" d="M300 176 L300 199"/>
+<rect class="mid" x="150" y="202" width="300" height="46" rx="5"/>
+<text class="mono ttx lbl" x="162" y="221">QEMU: edu_mmio_write</text>
+<text class="mono ttx" x="162" y="239">case 0x110: on_trigger(edu)</text>
+<text class="sans muted" x="462" y="230">host процессын C handler</text>
+<path class="arr" marker-end="url(#a)" d="M300 248 L300 271"/>
+<rect class="host" x="150" y="274" width="300" height="46" rx="5"/>
+<text class="mono tred lbl" x="162" y="293">on_trigger(edu)</text>
+<text class="mono tred" x="162" y="311">= edu_win   ← OOB-ээр дарсан</text>
+<text class="sans muted" x="462" y="302">анх edu_noop байсан</text>
+<path class="arr" marker-end="url(#a)" d="M300 320 L300 343"/>
+<rect class="host" x="150" y="346" width="300" height="46" rx="5"/>
+<text class="mono tred lbl" x="162" y="365">edu_win()  [HOST]</text>
+<text class="mono tred" x="162" y="383">system("id; cat /flag")</text>
+<text class="sans muted" x="462" y="374">guest-ээс гарч host дээр код!</text>
+</svg>

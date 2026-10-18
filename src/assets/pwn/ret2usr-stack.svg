@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 340" width="470" height="340" role="img">
+<title>ret2usr: vuln_ioctl kernel stack overflow</title>
+<style>
+svg{--bg:#f6f7f9;--border:#d5d9e0;--text:#403f53;--muted:#666b78;--box:#8a8f9a;--red:#c41a1a;--yellow:#8a5a00;--green:#16794a;--cyan:#00707a;}
+@media (prefers-color-scheme:dark){svg{--bg:#23262f;--border:#3b404c;--text:#d6deeb;--muted:#8f97a8;--box:#7f8796;--red:#ff7373;--yellow:#facc15;--green:#4ade80;--cyan:#22d3ee;}}
+.card{fill:var(--bg);stroke:var(--border);}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;}
+.sans{font-family:system-ui,sans-serif;font-size:12px;}
+.dir{fill:var(--text);font-weight:700;}.muted{fill:var(--muted);}
+.box{stroke:var(--box);stroke-width:1.2;}
+.ret{fill:var(--red);}.rbp{fill:var(--yellow);}.buf{fill:var(--green);}.r{fill:var(--cyan);}
+rect.ret,rect.rbp,rect.buf,rect.r{fill-opacity:.08;}
+.b{font-weight:700;}.bracket{fill:none;stroke:var(--red);stroke-width:1.4;}.line{fill:none;stroke:var(--cyan);stroke-width:1.6;}
+</style>
+<rect class="card" x=".5" y=".5" width="469" height="339" rx="6"/>
+<text class="sans dir" x="40" y="28">↑ их хаяг</text>
+<text class="sans dir" x="40" y="312">↓ бага хаяг</text>
+<rect class="box ret" x="40" y="44" width="200" height="30"/>
+<text class="mono ret b" x="52" y="64">return address</text>
+<text class="mono muted" x="252" y="64">← rsp+0x120</text>
+<text class="sans ret b" x="252" y="64">escalate() руу дарна</text>
+<rect class="box rbp" x="40" y="94" width="200" height="30"/>
+<text class="mono rbp b" x="52" y="114">saved rbp</text>
+<rect class="box rbp" x="40" y="124" width="200" height="30"/>
+<text class="mono rbp b" x="52" y="144">saved rbx</text>
+<rect class="box buf" x="40" y="154" width="200" height="96"/>
+<text class="mono buf b" x="52" y="208">char buf[0x100]</text>
+<text class="mono muted" x="252" y="174">← rsp+0x10</text>
+<rect class="box r" x="40" y="250" width="200" height="30"/>
+<text class="mono r b" x="52" y="270">struct req r</text>
+<text class="mono muted" x="252" y="270">← rsp</text>
+<path class="bracket" d="M34 250 L26 250 L26 44 L34 44"/>
+<text class="mono ret b" x="8" y="150" transform="rotate(-90 8 150)" text-anchor="middle">0x110 байт</text>
+<path class="line" marker-end="url(#up)" d="M140 248 L140 60"/>
+<defs><marker id="up" markerWidth="9" markerHeight="9" refX="4" refY="2" orient="auto"><path d="M0,6 L4,0 L8,6" fill="none" stroke="var(--cyan)" stroke-width="1.4"/></marker></defs>
+<text class="sans muted" x="150" y="300">copy_from_user нь buf-аас дээш бичнэ</text>
+</svg>

