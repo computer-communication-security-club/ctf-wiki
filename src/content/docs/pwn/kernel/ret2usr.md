@@ -1,6 +1,7 @@
 ---
 title: ret2usr
 description: Эмзэг kernel драйверийн stack overflow-оор return address-ийг userland код руу чиглүүлж (ret2usr) эрхгүй хэрэглэгчээс root болох.
+pagefind: false
 ---
 
 Userland pwn нь нэг **процессыг** эвддэг бол **kernel pwn** нь үйлдлийн системийн цөмийг (**kernel**) эвдэж

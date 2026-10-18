@@ -18,6 +18,10 @@ const ansiColors = {
   },
 };
 
+// ret2usr-ийг зөвхөн local dev дээр харуулна; production build (`astro build`)-д sidebar-аас нууна.
+// (Хуудас өөрөө build хэвээр тул URL-аар нээгдэнэ.)
+const hideKernel = process.argv.includes('build');
+
 export default defineConfig({
   site: 'https://ctf-wiki.sict-ccs.club',
   integrations: [
@@ -53,9 +57,9 @@ export default defineConfig({
                 { label: 'Format string', slug: 'pwn/userland/format-string' },
               ]},
             ]},
-            { label: 'Kernel', items: [
+            ...(hideKernel ? [] : [{ label: 'Kernel', items: [
               { label: 'ret2usr', slug: 'pwn/kernel/ret2usr' },
-            ]},
+            ]}]),
           ]},
         ]},
       ],
