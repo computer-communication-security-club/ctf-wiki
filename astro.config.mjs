@@ -58,7 +58,7 @@ export default defineConfig({
               ]},
               // Heap-ийг production-д нуух (хянаж байгаа); dev дээр харагдана
               ...(hideExperimental ? [] : [{ label: 'Heap', items: [
-                { label: 'tcache poisoning', slug: 'pwn/userland/heap' },
+                { label: 'tcache poisoning', slug: 'pwn/userland/tcache-poison' },
               ]}]),
             ]},
             ...(hideExperimental ? [] : [

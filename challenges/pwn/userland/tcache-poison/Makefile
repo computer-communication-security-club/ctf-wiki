@@ -1,4 +1,4 @@
-IMAGE := ctf-wiki-heap
+IMAGE := ctf-wiki-tcache-poison
 PORT  := 1337
 
 .PHONY: run stop

@@ -5,7 +5,7 @@ pagefind: false
 ---
 
 Heap pwn эхлэхийн өмнө glibc-ийн `malloc`/`free` санах ойг хэрхэн удирддагийг ойлгох хэрэгтэй. Энэ хуудас
-[Heap (tcache poisoning)](../../userland/heap/) бодлогод хэрэгтэй суурь ойлголтуудыг цуглуулав.
+[Heap (tcache poisoning)](../../userland/tcache-poison/) бодлогод хэрэгтэй суурь ойлголтуудыг цуглуулав.
 
 ## Chunk
 
@@ -112,7 +112,7 @@ tcache-д байгаа chunk бүрт `key` талбар (chunk+8) тавьда�
 
 ## Цаашид
 
-- [Heap (tcache poisoning)](../../userland/heap/) — энэ ойлголтууд дээр суурилсан бодлого: UAF → libc/heap
+- [Heap (tcache poisoning)](../../userland/tcache-poison/) — энэ ойлголтууд дээр суурилсан бодлого: UAF → libc/heap
   leak → tcache poisoning → GOT дарж `system`.
 - Нэр томъёо: [glossary](../../../glossary/) (chunk, tcache, UAF, double free, safe-linking, unsorted bin).
 

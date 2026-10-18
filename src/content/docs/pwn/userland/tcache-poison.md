@@ -36,9 +36,9 @@ Notes цэсний программ — `add` / `edit` / `show` / `delete`. Ал
 
 | Файл | Тайлбар |
 |------|---------|
-| [`main.c`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/userland/heap/main.c) | Эх код (UAF) |
-| [`heap`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/heap/heap) | Бэлэн binary |
-| [`libc.so.6`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/heap/libc.so.6), [`ld-...`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/heap/ld-linux-x86-64.so.2) | Зориулалтын libc (offset-ууд таарна) |
+| [`main.c`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/userland/tcache-poison/main.c) | Эх код (UAF) |
+| [`heap`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/tcache-poison/heap) | Бэлэн binary |
+| [`libc.so.6`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/tcache-poison/libc.so.6), [`ld-...`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/tcache-poison/ld-linux-x86-64.so.2) | Зориулалтын libc (offset-ууд таарна) |
 
 ```console
 $ checksec --file=./heap
@@ -51,7 +51,7 @@ $ checksec --file=./heap
 **Docker-ээр (сервер).** Бэлэн image GitHub (ghcr)-д байгаа (`pwn-<challenge нэр>`). Татаж ажиллуулна:
 
 ```console
-$ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-heap:latest
+$ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-tcache-poison:latest
 ```
 
 ## Бодолт
