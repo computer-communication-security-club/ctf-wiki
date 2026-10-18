@@ -42,7 +42,7 @@ stack overflow-оор return address-ийг **userland дахь өөрсдийн
 | [`bzImage`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/kernel/ret2usr/bzImage) | Бэлэн kernel |
 | [`rootfs.cpio.gz`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/kernel/ret2usr/rootfs.cpio.gz) | initramfs (BusyBox + `vuln.ko` + flag) |
 | [`run.sh`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/kernel/ret2usr/run.sh) | QEMU ачаалах (local) |
-| [`Dockerfile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/kernel/ret2usr/Dockerfile), [`start.sh`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/kernel/ret2usr/start.sh) | Сервер (remote) — base64 exploit хүлээн авна |
+| [`Dockerfile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/kernel/ret2usr/Dockerfile), [`start.sh`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/kernel/ret2usr/start.sh) | Сервер (remote) — холбогдоход VM shell өгнө |
 
 Ажиллуулах (`qemu-system-x86_64` хэрэгтэй):
 
@@ -63,14 +63,17 @@ $ gcc -static -o exploit exploit.c
 $ ./run.sh exploit
 ```
 
-**Сервер (remote) хувилбар.** Challenge-ийг Docker image хэлбэрээр ажиллуулж болно. Холбогдоход сервер
-exploit-ийг **base64**-ээр хүлээж авч rootfs-д нэмээд QEMU-г ачаална:
+**Сервер (remote) хувилбар.** Challenge-ийг Docker image хэлбэрээр ажиллуулж болно. Холбогдоход шууд
+эрхгүй (uid 1000) **бүрэн shell** өгнө (хугацааны хязгааргүй). `/tmp` бичигдэх тул static exploit-ээ
+base64-ээр оруулж ажиллуулна:
 
 ```console
 $ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-ret2usr
-# өөр terminal дээр — exploit-ээ base64-ээр илгээж, shell-тэй харилцана:
-$ gcc -static -o exploit exploit.c
-$ { base64 -w0 exploit; echo; cat; } | nc localhost 1337
+$ nc localhost 1337
+/ $ base64 -d > /tmp/e << "END"       # өөр дээрээ: gcc -static -o exploit exploit.c && base64 -w0 exploit
+<exploit-ийн base64>
+END
+/ $ chmod +x /tmp/e; /tmp/e
 ```
 
 :::tip[gdb-ээр debug хийх]
