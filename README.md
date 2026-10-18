@@ -3,7 +3,7 @@
 Монгол хэл дээрх CTF болон мэдээллийн аюулгүй байдлын суралцах материал.
 [Astro Starlight](https://starlight.astro.build) дээр бүтээсэн.
 
-🌐 **Сайт:** https://computer-communication-security-club.github.io/ctf-wiki/
+🌐 **Сайт:** https://ctf-wiki.sict-ccs.club/
 
 ## Бүтэц
 
@@ -23,7 +23,7 @@
 │   │   │   └── pwn/ret2text.md
 │   │   └── i18n/mn.json        # Сайтын UI-ийн Монгол орчуулга
 │   └── content.config.ts
-└── astro.config.mjs            # Sidebar, base path
+└── astro.config.mjs            # Sidebar, домэйн (site)
 ```
 
 ## Локалд ажиллуулах
@@ -32,7 +32,7 @@
 
 ```sh
 npm install
-npm run dev        # http://localhost:4321/ctf-wiki/
+npm run dev        # http://localhost:4321/
 ```
 
 | Команд | Үйлдэл |

@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 A Mongolian-language CTF learning wiki built with Astro + Starlight, deployed to GitHub Pages at
-`https://computer-communication-security-club.github.io/ctf-wiki/`. There is no application code, test
+`https://ctf-wiki.sict-ccs.club/`. There is no application code, test
 suite, or linter: the "code" is Markdown pages plus the challenge binaries they walk through.
 
 ## Commands
@@ -13,7 +13,7 @@ suite, or linter: the "code" is Markdown pages plus the challenge binaries they 
 Requires Node.js ≥ 22.22.
 
 - `npm install`
-- `astro dev --background` starts the dev server at `http://localhost:4321/ctf-wiki/` (note the base path). Manage it with `astro dev stop | status | logs`.
+- `astro dev --background` starts the dev server at `http://localhost:4321/`. Manage it with `astro dev stop | status | logs`.
 - `npm run build`: production build to `dist/`. This is the only check CI runs, so use it to validate changes (broken frontmatter or sidebar slugs fail here).
 - `npm run build && npm run preview`: search (Pagefind) only works on a production build.
 - `cd challenges/pwn/<name> && make run` / `make stop`: run a challenge locally on `nc localhost 1337` (Docker).

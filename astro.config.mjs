@@ -19,8 +19,7 @@ const ansiColors = {
 };
 
 export default defineConfig({
-  site: 'https://computer-communication-security-club.github.io',
-  base: '/ctf-wiki',
+  site: 'https://ctf-wiki.sict-ccs.club',
   integrations: [
     starlight({
       title: 'CTF Wiki',
