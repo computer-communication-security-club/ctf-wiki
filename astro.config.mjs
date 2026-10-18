@@ -53,6 +53,9 @@ export default defineConfig({
                 { label: 'Format string', slug: 'pwn/userland/format-string' },
               ]},
             ]},
+            { label: 'Kernel', items: [
+              { label: 'ret2usr', slug: 'pwn/kernel/ret2usr' },
+            ]},
           ]},
         ]},
       ],

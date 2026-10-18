@@ -19,3 +19,7 @@ title: Нэр томъёо
 | PLT | Procedure Linkage Table — GOT-оос хаягийг уншиж функц дууддаг код |
 | ROP | Return-Oriented Programming — байгаа кодын хэсгүүдийг (gadget) `ret`-ээр холбож ажиллуулах |
 | gadget | `ret`-ээр төгсдөг богино кодын хэсэг (жишээ нь `pop rdi; ret`) |
+| ret2usr | Kernel exploit-д return address-ийг userland код руу чиглүүлж ring-0-д ажиллуулах |
+| commit_creds | Процессын эрхийг (credential) солих kernel функц — privesc-д ашиглана |
+| KASLR | Kernel ASLR — kernel-ийн хаягийг санамсаргүй болгоно |
+| SMEP | Supervisor Mode Execution Prevention — ring-0-д userland код ажиллуулахыг хориглоно |
