@@ -13,15 +13,15 @@ description: Stack overflow ашиглан программын өөрийн к�
 :::note[Суурь мэдлэг]
 - C хэлний үндэс, `gets()`/`read()` зэрэг функц
 - x86-64 assembly-ийн суурь (`push`, `call`, `leave`, `ret`)
-- `gdb` (pwndbg эсвэл GEF) — анх удаа ашиглаж байвал [pwndbg үндэс](../tools/gdb/) хуудсыг уншаарай
-- Python-ий `pwntools` — анх удаа ашиглаж байвал [pwntools үндэс](../tools/pwntools/) хуудсыг уншаарай
+- `gdb` (pwndbg эсвэл GEF) — анх удаа ашиглаж байвал [pwndbg үндэс](../../tools/gdb/) хуудсыг уншаарай
+- Python-ий `pwntools` — анх удаа ашиглаж байвал [pwntools үндэс](../../tools/pwntools/) хуудсыг уншаарай
 :::
 
 ## Санаа
 
 Функц дуудагдах үед stack дээр дараах бүтэц үүснэ (64-bit):
 
-![Функцийн stack frame: дээрээс доош return address (8 B, rbp + 8), saved rbp (8 B, rbp), char buf[...] (buf). gets() өгөгдлийг buf-аас эхлээд их хаяг руу бичдэг тул return address-ийг дарж бичиж чадна.](../../../assets/pwn/ret2text-stack.svg)
+![Функцийн stack frame: дээрээс доош return address (8 B, rbp + 8), saved rbp (8 B, rbp), char buf[...] (buf). gets() өгөгдлийг buf-аас эхлээд их хаяг руу бичдэг тул return address-ийг дарж бичиж чадна.](../../../../assets/pwn/ret2text-stack.svg)
 
 `gets()` шиг урт шалгадаггүй функц `buf`-аас илүү өгөгдөл хүлээж авбал өгөгдөл **дээшээ** (их хаяг руу)
 урсаж, `saved rbp`, улмаар `return address`-ийг дарна. Функц `ret` заавар гүйцэтгэх үед CPU stack-ийн оройгоос
@@ -47,18 +47,18 @@ ret2text ажиллах нөхцөл:
 | PIE | **Байхгүй** (эсвэл хаяг leak хийсэн) | PIE байвал `.text`-ийн хаяг ажиллах бүрт өөрчлөгдөнө |
 | NX | Хамаагүй | Бид shellcode ажиллуулахгүй, байгаа кодыг л ашиглана |
 
-Хамгаалалт бүрийн дэлгэрэнгүйг [Хамгаалалтууд](../basics/protections/) хуудаснаас үзээрэй.
+Хамгаалалт бүрийн дэлгэрэнгүйг [Хамгаалалтууд](../../basics/protections/) хуудаснаас үзээрэй.
 
 ## Бодлого
 
-Бүх файл [`challenges/pwn/ret2text`](https://github.com/computer-communication-security-club/ctf-wiki/tree/main/challenges/pwn/ret2text) хавтсанд байна:
+Бүх файл [`challenges/pwn/userland/ret2text`](https://github.com/computer-communication-security-club/ctf-wiki/tree/main/challenges/pwn/userland/ret2text) хавтсанд байна:
 
 | Файл | Тайлбар |
 |------|---------|
-| [`main.c`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/ret2text/main.c) | Эх код |
-| [`ret2text`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/ret2text/ret2text) | Бэлэн binary (Ubuntu 24.04 дээр compile хийсэн) |
-| [`Dockerfile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/ret2text/Dockerfile) | Challenge сервер (deploy) |
-| [`Makefile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/ret2text/Makefile) | `make run`, `make stop` |
+| [`main.c`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/userland/ret2text/main.c) | Эх код |
+| [`ret2text`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/ret2text/ret2text) | Бэлэн binary (Ubuntu 24.04 дээр compile хийсэн) |
+| [`Dockerfile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/userland/ret2text/Dockerfile) | Challenge сервер (deploy) |
+| [`Makefile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/userland/ret2text/Makefile) | `make run`, `make stop` |
 
 :::tip
 Бэлэн binary-г ашиглавал энэ хуудсан дээрх хаягууд (gdb гаралт гэх мэт) таных яг ижил гарна.
@@ -68,7 +68,7 @@ ret2text ажиллах нөхцөл:
 Challenge-ийг сервер хэлбэрээр ажиллуулах (Docker хэрэгтэй):
 
 ```console
-$ cd challenges/pwn/ret2text
+$ cd challenges/pwn/userland/ret2text
 $ make run      # localhost:1337 дээр асна
 $ nc localhost 1337
 What is your name?
@@ -210,7 +210,7 @@ End of assembler dump.
 
 Дээрх [stack-ийн зураг](#санаа)-аас `saved rbp` нь `rbp`-д, return address нь `rbp + 8`-д байдгийг мэдэж байгаа:
 
-![buf нь rbp − 0x40-д эхэлнэ (64 байт), дээр нь saved rbp (8 байт, rbp-д), дараа нь return address (rbp + 8). buf-аас return address хүртэл 64 + 8 = 72 байт.](../../../assets/pwn/ret2text-offset.svg)
+![buf нь rbp − 0x40-д эхэлнэ (64 байт), дээр нь saved rbp (8 байт, rbp-д), дараа нь return address (rbp + 8). buf-аас return address хүртэл 64 + 8 = 72 байт.](../../../../assets/pwn/ret2text-offset.svg)
 
 ```
 offset = (rbp + 8) − (rbp − 0x40) = 0x40 + 8 = 72
@@ -333,7 +333,7 @@ glibc-ийн `system()` дотор `movaps` заавар байдаг бөгөө
 
 ### 6. Exploit
 
-`pwn template`-ээр бэлдэц үүсгэнэ (дэлгэрэнгүйг [pwntools үндэс](../tools/pwntools/#pwn-template) хуудаснаас):
+`pwn template`-ээр бэлдэц үүсгэнэ (дэлгэрэнгүйг [pwntools үндэс](../../tools/pwntools/#pwn-template) хуудаснаас):
 
 ```console
 $ pwn template ./ret2text --host localhost --port 1337 --quiet > exploit.py

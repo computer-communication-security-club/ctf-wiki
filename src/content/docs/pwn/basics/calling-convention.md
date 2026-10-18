@@ -248,7 +248,7 @@ pwn-д хэрэгтэй хоёр зүйл:
 
 Exploit-д функцийг `call`-аар биш `ret`-ээр эхлүүлдэг тул энэ тэнцвэр 8 байтаар алдагдаж болно. glibc-ийн `system()`
 доторх `movaps` заавар тэгшлэгдээгүй хаяг дээр `SIGSEGV` өгдөг. Шийдэл нь нэмэлт `ret` gadget —
-[ret2text](../../ret2text/)-ийн "Stack alignment" алхамд жишээтэй.
+[ret2text](../../userland/ret2text/)-ийн "Stack alignment" алхамд жишээтэй.
 
 ## 32-bit (cdecl)
 

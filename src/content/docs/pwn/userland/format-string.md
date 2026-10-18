@@ -11,8 +11,8 @@ description: printf() format string эмзэг байдлаар санах ой 
 дуудна. Гол санаа: `exit@got`-ийг дарж бичиж **давталт** үүсгээд, format string-ийг хэд хэдэн удаа ашиглана.
 
 :::note[Суурь мэдлэг]
-- [ret2text](../ret2text/); [GOT ба PLT](../basics/got-plt/) (бид GOT дарж бичнэ), [RELRO](../basics/protections/#relro); [ASLR](../basics/protections/#aslr), [NX](../basics/protections/#nx)
-- [pwndbg](../tools/gdb/) ([got](../tools/gdb/#got--got-ийн-төлөв) команд), [pwntools](../tools/pwntools/) үндэс
+- [ret2text](../ret2text/); [GOT ба PLT](../../basics/got-plt/) (бид GOT дарж бичнэ), [RELRO](../../basics/protections/#relro); [ASLR](../../basics/protections/#aslr), [NX](../../basics/protections/#nx)
+- [pwndbg](../../tools/gdb/) ([got](../../tools/gdb/#got--got-ийн-төлөв) команд), [pwntools](../../tools/pwntools/) үндэс
 :::
 
 ## Санаа
@@ -30,7 +30,7 @@ format мөр** болж, `%`-тэй тохиолдол бүрт stack дээр�
 
 `win()` байхгүй тул shell нээхэд гурван зүйл хэрэгтэй:
 
-1. **libc хаяг leak** (унших примитив) — `%p`-ээр libc доторх хаяг олж base-ийг тооцно ([ASLR](../basics/protections/#aslr) тойрно).
+1. **libc хаяг leak** (унших примитив) — `%p`-ээр libc доторх хаяг олж base-ийг тооцно ([ASLR](../../basics/protections/#aslr) тойрно).
 2. **Давталт** — `printf` ганц удаа дуудагддаг тул leak болон бичилтийг нэг дор хийж чадахгүй. `exit@got`-ийг
    `vuln`-ээр дарж бичвэл `exit()` → `vuln` болж **format string-ийг дахин дахин** ашиглана.
 3. **`printf@got` → `system`** (бичих примитив) — дараа нь `printf(buf)` нь үнэндээ `system(buf)` болох тул
@@ -47,25 +47,25 @@ format мөр** болж, `%`-тэй тохиолдол бүрт stack дээр�
 
 ## Бодлого
 
-Бүх файл [`challenges/pwn/fmtstr`](https://github.com/computer-communication-security-club/ctf-wiki/tree/main/challenges/pwn/fmtstr) хавтсанд байна:
+Бүх файл [`challenges/pwn/userland/fmtstr`](https://github.com/computer-communication-security-club/ctf-wiki/tree/main/challenges/pwn/userland/fmtstr) хавтсанд байна:
 
 | Файл | Тайлбар |
 |------|---------|
-| [`main.c`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/fmtstr/main.c) | Эх код |
-| [`fmtstr`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/fmtstr/fmtstr) | Бэлэн binary |
-| [`libc.so.6`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/fmtstr/libc.so.6) | Challenge-ийн ашигладаг libc — **offset тооцоход хэрэгтэй** |
-| [`ld-linux-x86-64.so.2`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/fmtstr/ld-linux-x86-64.so.2) | Дээрх libc-ийн loader |
-| [`Dockerfile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/fmtstr/Dockerfile) | Challenge сервер (deploy) |
-| [`Makefile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/fmtstr/Makefile) | `make run`, `make stop` |
+| [`main.c`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/userland/fmtstr/main.c) | Эх код |
+| [`fmtstr`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/fmtstr/fmtstr) | Бэлэн binary |
+| [`libc.so.6`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/fmtstr/libc.so.6) | Challenge-ийн ашигладаг libc — **offset тооцоход хэрэгтэй** |
+| [`ld-linux-x86-64.so.2`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/fmtstr/ld-linux-x86-64.so.2) | Дээрх libc-ийн loader |
+| [`Dockerfile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/userland/fmtstr/Dockerfile) | Challenge сервер (deploy) |
+| [`Makefile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/userland/fmtstr/Makefile) | `make run`, `make stop` |
 
 :::caution[libc-ийн хувилбар]
 `system`-ийн offset нь libc-ийн хувилбараас хамаарна. Challenge нь ашигладаг `libc.so.6`-оо хамт тараадаг бөгөөд
 binary нь `rpath`-аар зассан тул энэ libc-ийг (өөрийн машины libc биш) ачаална. **Challenge хавтаснаасаа**
-ажиллуулаарай ([ldd ./fmtstr](../tools/gdb/) → `libc.so.6 => ./libc.so.6`).
+ажиллуулаарай ([ldd ./fmtstr](../../tools/gdb/) → `libc.so.6 => ./libc.so.6`).
 :::
 
 ```console
-$ cd challenges/pwn/fmtstr
+$ cd challenges/pwn/userland/fmtstr
 $ make run      # localhost:1337 дээр асна
 $ nc localhost 1337
 What is your name?
@@ -251,7 +251,7 @@ Payload илгээсний дараа программ `Bye!` хэвлээд `ex
 
 ### 6. Exploit
 
-Бүтэн [exploit.py](../tools/pwntools/#pwn-template) (тодруулсан мөрүүд):
+Бүтэн [exploit.py](../../tools/pwntools/#pwn-template) (тодруулсан мөрүүд):
 
 ```python title="exploit.py" ins={40-59}
 #!/usr/bin/env python3

@@ -20,9 +20,10 @@ jobs:
       - name: Build and push images
         run: |
           owner="${GITHUB_REPOSITORY_OWNER,,}"
-          for dockerfile in challenges/*/*/Dockerfile; do
+          find challenges -name Dockerfile | while read -r dockerfile; do
             dir="$(dirname "$dockerfile")"
-            image="ghcr.io/$owner/$(basename "$(dirname "$dir")")-$(basename "$dir"):latest"
+            # image нэр: <дээд ангилал>-<бодлого> (жишээ нь pwn-ret2text)
+            image="ghcr.io/$owner/$(echo "$dockerfile" | cut -d/ -f2)-$(basename "$dir"):latest"
             echo "::group::$image"
             docker build -t "$image" \
               --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \

@@ -44,12 +44,14 @@ export default defineConfig({
         { label: 'CTF', items: [
           { label: 'Pwn', items: [
             // pwn/basics/*, pwn/tools/* хуудсууд sidebar-т байхгүй ч URL-аар нээгдэнэ
-            { label: 'Stack Overflow', items: [
-              { label: 'ret2text', slug: 'pwn/ret2text' },
-              { label: 'ret2shellcode', slug: 'pwn/ret2shellcode' },
-            ]},
-            { label: 'Format string', items: [
-              { label: 'Format string', slug: 'pwn/format-string' },
+            { label: 'Userland', items: [
+              { label: 'Stack Overflow', items: [
+                { label: 'ret2text', slug: 'pwn/userland/ret2text' },
+                { label: 'ret2shellcode', slug: 'pwn/userland/ret2shellcode' },
+              ]},
+              { label: 'Format string', items: [
+                { label: 'Format string', slug: 'pwn/userland/format-string' },
+              ]},
             ]},
           ]},
         ]},

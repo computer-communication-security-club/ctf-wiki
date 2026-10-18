@@ -7,8 +7,8 @@ description: pwn template-ээр exploit бэлдэц үүсгэх, process/remo
 Программ ажиллуулах, сервер рүү холбогдох, өгөгдөл илгээх/хүлээн авах, хаягийг байт болгох,
 binary-аас symbol хайх гэх мэт pwn бодлогод байнга хийдэг бүх зүйлийг нэг дор өгдөг.
 
-Энэ хуудасны жишээнүүд [ret2text](../../ret2text/) бодлогын
-[`ret2text`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/ret2text/ret2text)
+Энэ хуудасны жишээнүүд [ret2text](../../userland/ret2text/) бодлогын
+[`ret2text`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/ret2text/ret2text)
 binary дээр хийгдсэн тул хаягууд таных яг ижил гарна.
 
 ```console

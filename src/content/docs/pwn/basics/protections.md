@@ -48,7 +48,7 @@ $ checksec --file=vuln
     Stripped:   No
 ```
 
-Харин [ret2text](../../ret2text/)-ийн binary-д canary болон PIE-г зориуд унтраасан:
+Харин [ret2text](../../userland/ret2text/)-ийн binary-д canary болон PIE-г зориуд унтраасан:
 
 ```console
 $ checksec --file=ret2text
@@ -91,10 +91,10 @@ pwndbg-ийн `vmmap` командаар эрхийг харна. `[stack]`-ий
 ```
 
 **Юу өөрчлөгдөх вэ:** NX байхгүй бол stack overflow-оор өөрийн машин кодоо (**shellcode**) stack дээр
-бичээд return address-ийг түүн рүү чиглүүлж болно ([ret2shellcode](../../ret2shellcode/)). NX байвал CPU тэр хаягт очмогц `SIGSEGV` өгнө.
+бичээд return address-ийг түүн рүү чиглүүлж болно ([ret2shellcode](../../userland/ret2shellcode/)). NX байвал CPU тэр хаягт очмогц `SIGSEGV` өгнө.
 
 **Тойрох арга:** шинэ код бичихийн оронд программд **аль хэдийн байгаа** кодыг ашиглах —
-[ret2text](../../ret2text/), ROP, ret2libc. Иймээс ret2text-д NX "хамаагүй" байсан.
+[ret2text](../../userland/ret2text/), ROP, ret2libc. Иймээс ret2text-д NX "хамаагүй" байсан.
 
 :::note
 `-z execstack`-тэй binary-д pwntools-ийн `checksec` заримдаа `NX unknown - GNU_STACK missing`
@@ -244,7 +244,7 @@ main: 0x401176  buf: 0x7ffdf5ec0650
 ```
 
 - **PIE-гүй:** `main` үргэлж `0x401176` — binary `0x400000`-д тогтмол ачаалагдана.
-  Иймээс [ret2text](../../ret2text/)-д `win()`-ийн хаягийг (`0x401196`) шууд ашиглаж чадсан.
+  Иймээс [ret2text](../../userland/ret2text/)-д `win()`-ийн хаягийг (`0x401196`) шууд ашиглаж чадсан.
 - **PIE-тэй:** `main` = `0x5f50f9141189`, `0x59351c607189`… — ажиллах бүрт өөр.
 
 PIE-тэй binary-д `checksec`, `objdump` харуулдаг хаяг (`0x1189`) нь жинхэнэ хаяг биш, binary-ийн эхлэлээс
@@ -302,7 +302,7 @@ return address-ийг дардаг.
 
 | Хамгаалалт | Унтраах флаг | Тойрох гол арга | Жишээ |
 |------------|--------------|-----------------|-------|
-| NX | `-z execstack` | Байгаа кодыг ашиглах (ROP) | [ret2text](../../ret2text/) |
+| NX | `-z execstack` | Байгаа кодыг ашиглах (ROP) | [ret2text](../../userland/ret2text/) |
 | Canary | `-fno-stack-protector` | Canary leak, brute force | |
 | ASLR | `randomize_va_space = 0` | Хаяг leak → base тооцох | |
 | PIE | `-no-pie` | Кодын хаяг leak, partial overwrite | |

@@ -11,8 +11,8 @@ description: NX унтраалттай binary-д stack overflow ашиглан �
 
 :::note[Суурь мэдлэг]
 - [ret2text](../ret2text/) — stack overflow, offset олох, return address дарж бичих
-- [Хамгаалалтууд](../basics/protections/#nx) хуудасны NX ба ASLR хэсэг
-- [Calling convention](../basics/calling-convention/#syscall) хуудасны Syscall хэсэг — shellcode `execve` syscall дууддаг
+- [Хамгаалалтууд](../../basics/protections/#nx) хуудасны NX ба ASLR хэсэг
+- [Calling convention](../../basics/calling-convention/#syscall) хуудасны Syscall хэсэг — shellcode `execve` syscall дууддаг
 :::
 
 ## Санаа
@@ -28,7 +28,7 @@ CPU энэ өгөгдлийг **код** болгон гүйцэтгэж чад�
 
 `vuln()` `ret` хийхэд CPU `buf` руу үсэрч, бидний shellcode-ийг гүйцэтгэнэ:
 
-![Overflow хийсний дараах stack: дээрээс доош return address (buf-ийн хаяг), saved rbp (AAAAAAAA), padding (AAAA…), buf-ийн эхэнд shellcode. ret хийхэд CPU return address-аас shellcode руу үсэрнэ.](../../../assets/pwn/ret2shellcode-stack.svg)
+![Overflow хийсний дараах stack: дээрээс доош return address (buf-ийн хаяг), saved rbp (AAAAAAAA), padding (AAAA…), buf-ийн эхэнд shellcode. ret хийхэд CPU return address-аас shellcode руу үсэрнэ.](../../../../assets/pwn/ret2shellcode-stack.svg)
 
 Payload:
 
@@ -40,7 +40,7 @@ Payload:
 ret2text-тэй харьцуулахад хоёр шинэ асуудал гарна:
 
 1. **Shellcode** — shell нээдэг машин кодыг хаанаас авах вэ?
-2. **`buf`-ийн хаяг** — stack-ийн хаяг [ASLR](../basics/protections/#aslr)-ийн улмаас ажиллах бүрт өөрчлөгддөг. Хаашаа үсрэхээ яаж мэдэх вэ?
+2. **`buf`-ийн хаяг** — stack-ийн хаяг [ASLR](../../basics/protections/#aslr)-ийн улмаас ажиллах бүрт өөрчлөгддөг. Хаашаа үсрэхээ яаж мэдэх вэ?
 
 **ret2shellcode** ажиллах нөхцөл:
 
@@ -53,14 +53,14 @@ ret2text-тэй харьцуулахад хоёр шинэ асуудал гар
 
 ## Бодлого
 
-Бүх файл [`challenges/pwn/ret2shellcode`](https://github.com/computer-communication-security-club/ctf-wiki/tree/main/challenges/pwn/ret2shellcode) хавтсанд байна:
+Бүх файл [`challenges/pwn/userland/ret2shellcode`](https://github.com/computer-communication-security-club/ctf-wiki/tree/main/challenges/pwn/userland/ret2shellcode) хавтсанд байна:
 
 | Файл | Тайлбар |
 |------|---------|
-| [`main.c`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/ret2shellcode/main.c) | Эх код |
-| [`ret2shellcode`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/ret2shellcode/ret2shellcode) | Бэлэн binary (Ubuntu 24.04 дээр compile хийсэн) |
-| [`Dockerfile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/ret2shellcode/Dockerfile) | Challenge сервер (deploy) |
-| [`Makefile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/ret2shellcode/Makefile) | `make run`, `make stop` |
+| [`main.c`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/userland/ret2shellcode/main.c) | Эх код |
+| [`ret2shellcode`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/userland/ret2shellcode/ret2shellcode) | Бэлэн binary (Ubuntu 24.04 дээр compile хийсэн) |
+| [`Dockerfile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/userland/ret2shellcode/Dockerfile) | Challenge сервер (deploy) |
+| [`Makefile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/userland/ret2shellcode/Makefile) | `make run`, `make stop` |
 
 :::tip
 Бэлэн binary-г ашиглавал энэ хуудсан дээрх disassembly, offset таных яг ижил гарна.
@@ -70,7 +70,7 @@ ret2text-тэй харьцуулахад хоёр шинэ асуудал гар
 Challenge-ийг сервер хэлбэрээр ажиллуулах (Docker хэрэгтэй):
 
 ```console
-$ cd challenges/pwn/ret2shellcode
+$ cd challenges/pwn/userland/ret2shellcode
 $ make run      # localhost:1337 дээр асна
 $ nc localhost 1337
 buf: 0x7fffaab828b0
@@ -136,7 +136,7 @@ $ checksec --file=ret2shellcode
 ```
 
 ret2text-ээс ялгаатай нь `Stack: Executable`, `RWX: Has RWX segments` мөрүүд нэмэгдсэн — stack ажиллагдах боломжтой.
-`NX unknown` гэж буруу харуулдаг шалтгааныг [Хамгаалалтууд](../basics/protections/#nx) хуудсанд тайлбарласан.
+`NX unknown` гэж буруу харуулдаг шалтгааныг [Хамгаалалтууд](../../basics/protections/#nx) хуудсанд тайлбарласан.
 `readelf`-ээр баталгаажуулъя:
 
 ```console
@@ -233,7 +233,7 @@ environment-ээс хамаарч арай өөр байж болно). gdb-гү
 execve("/bin/sh", ["sh", NULL], NULL);
 ```
 
-Үүнийг [Calling convention](../basics/calling-convention/#syscall) хуудсанд үзсэн шиг `rax = 59` (`SYS_execve`),
+Үүнийг [Calling convention](../../basics/calling-convention/#syscall) хуудсанд үзсэн шиг `rax = 59` (`SYS_execve`),
 `rdi`, `rsi`, `rdx`-д аргументуудыг тавиад `syscall` заавраар дуудна. Гараар бичих шаардлагагүй — pwntools-ийн
 **`shellcraft`** бэлэн assembly үүсгэж, **`asm()`** түүнийг байт болгоно:
 
@@ -339,7 +339,7 @@ buf = int(io.recvline(), 16)    # b'0x7fffaab828b0\n' → 0x7fffaab828b0
 
 ### 6. Exploit
 
-`pwn template`-ээр бэлдэц үүсгэнэ ([pwntools](../tools/pwntools/#pwn-template)):
+`pwn template`-ээр бэлдэц үүсгэнэ ([pwntools](../../tools/pwntools/#pwn-template)):
 
 ```console
 $ pwn template ./ret2shellcode --host localhost --port 1337 --quiet > exploit.py

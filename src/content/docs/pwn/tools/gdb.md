@@ -284,7 +284,7 @@ LEGEND: [33;49;22;23;24;27mSTACK[m | [34;49;22;23;24;27mHEAP[m | [31;49;22;
 
 ## Pwn-д хэрэгтэй командууд
 
-Доорх командууд pwn бодлогод байнга хэрэг болно. Эхний хэдийг [ret2text](../../ret2text/) binary дээр үзүүлнэ.
+Доорх командууд pwn бодлогод байнга хэрэг болно. Эхний хэдийг [ret2text](../../userland/ret2text/) binary дээр үзүүлнэ.
 
 ### distance — хоёр хаягийн зөрүү
 
@@ -296,7 +296,7 @@ LEGEND: [33;49;22;23;24;27mSTACK[m | [34;49;22;23;24;27mHEAP[m | [31;49;22;
 [33m0x7fffffffde10[0m->[33m0x7fffffffde58[0m is 0x48 bytes (0x9 words)
 ```
 
-`0x48` = **72** — энэ бол яг [ret2text-ийн offset](../../ret2text/#4-offset-олох). cyclic pattern ашиглахгүйгээр
+`0x48` = **72** — энэ бол яг [ret2text-ийн offset](../../userland/ret2text/#4-offset-олох). cyclic pattern ашиглахгүйгээр
 хоёр хаягийн зөрүүгээр offset-ийг шууд уншиж болно.
 
 ### search — санах ойгоос хайх

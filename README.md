@@ -11,16 +11,19 @@
 .
 ├── challenges/                 # Бодлогын файлууд (binary, Dockerfile)
 │   └── pwn/
-│       └── ret2text/
-│           ├── main.c          # Эх код
-│           ├── ret2text        # Бэлэн binary
-│           ├── flag.txt
-│           ├── Dockerfile      # Зөвхөн deploy (socat, порт 1337)
-│           └── Makefile        # make run / make stop
+│       ├── userland/           # Процессын санах ой (ret2text, fmtstr...)
+│       │   └── ret2text/
+│       │       ├── main.c      # Эх код
+│       │       ├── ret2text    # Бэлэн binary
+│       │       ├── flag.txt
+│       │       ├── Dockerfile  # Зөвхөн deploy (socat, порт 1337)
+│       │       └── Makefile    # make run / make stop
+│       └── kernel/             # Kernel pwn (QEMU: bzImage, rootfs, run.sh)
+│           └── ret2usr/
 ├── src/
 │   ├── content/
 │   │   ├── docs/               # Wiki хуудсууд (.md)
-│   │   │   └── pwn/ret2text.md
+│   │   │   └── pwn/userland/ret2text.md
 │   │   └── i18n/mn.json        # Сайтын UI-ийн Монгол орчуулга
 │   └── content.config.ts
 └── astro.config.mjs            # Sidebar, домэйн (site)
@@ -57,7 +60,7 @@ npm run dev        # http://localhost:4321/
 2. `astro.config.mjs`-ийн `sidebar` хэсэгт нэг мөр нэм:
 
    ```js
-   { label: 'ret2text', slug: 'pwn/ret2text' },
+   { label: 'ret2text', slug: 'pwn/userland/ret2text' },
    ```
 
 3. Шинэ нэр томъёо гарвал `src/content/docs/glossary.md`-д нэм.
@@ -79,7 +82,7 @@ Exploit скрипт зөвхөн хуудасны markdown дотор байн�
 `ret2text`-ийн файлуудыг загвар болгон хуул.
 
 ```sh
-cd challenges/pwn/ret2text
+cd challenges/pwn/userland/ret2text
 make run           # localhost:1337
 nc localhost 1337
 make stop

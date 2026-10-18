@@ -16,7 +16,7 @@ Requires Node.js ≥ 22.22.
 - `astro dev --background` starts the dev server at `http://localhost:4321/`. Manage it with `astro dev stop | status | logs`.
 - `npm run build`: production build to `dist/`. This is the only check CI runs, so use it to validate changes (broken frontmatter or sidebar slugs fail here).
 - `npm run build && npm run preview`: search (Pagefind) only works on a production build.
-- `cd challenges/pwn/<name> && make run` / `make stop`: run a challenge locally on `nc localhost 1337` (Docker).
+- `cd challenges/pwn/<category>/<name> && make run` / `make stop`: run a challenge locally on `nc localhost 1337` (Docker).
 
 After changing `expressiveCode`/markdown config in `astro.config.mjs`, the rendered content is cached. Clear it or the change won't show: `astro dev stop; rm -rf .astro node_modules/.astro; astro dev --background`.
 
@@ -34,6 +34,6 @@ After changing `expressiveCode`/markdown config in `astro.config.mjs`, the rende
 - Frontmatter needs `title` and a one-sentence `description`.
 - Exploit scripts live only inside the page's Markdown, never in `challenges/`.
 - Addresses and offsets shown on a page must match the committed prebuilt binary, so if you rebuild the binary, update the page.
-- Internal links are relative and end in a trailing slash. Because each page is served as a directory, links need one more `../` than the file-relative path would (from `pwn/ret2text.md`, the gdb page is `../tools/gdb/`; from `pwn/basics/protections.md`, ret2text is `../../ret2text/`). Links to challenge files point at the GitHub repo URLs (`.../tree/main/challenges/...`, `.../raw/main/...` for binaries).
+- Internal links are relative and end in a trailing slash. Because each page is served as a directory, links need one more `../` than the file-relative path would (from `pwn/userland/ret2text.md`, the gdb page is `../../tools/gdb/`; from `pwn/basics/protections.md`, ret2text is `../../userland/ret2text/`). Links to challenge files point at the GitHub repo URLs (`.../tree/main/challenges/...`, `.../raw/main/...` for binaries).
 - Use Starlight asides (`:::note`, `:::tip`, `:::caution`, with an optional Mongolian title in `[...]`).
 - Commit messages are short English imperative sentences (e.g. "Add calling convention basics page").

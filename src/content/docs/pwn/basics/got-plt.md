@@ -86,7 +86,7 @@ gdb-ээр `puts@got`-ийн утгыг эхэнд болон эхний дуу�
 
 | Хэрэглээ | Тайлбар |
 |----------|---------|
-| **GOT overwrite** | GOT бичигдэх үед (Partial RELRO) `puts@got` зэргийг өөр функцийн (жишээ нь `system`) хаягаар дарж бичвэл дараагийн дуудлага тийшээ очно. [format string](../../format-string/)-д ашигласан |
+| **GOT overwrite** | GOT бичигдэх үед (Partial RELRO) `puts@got` зэргийг өөр функцийн (жишээ нь `system`) хаягаар дарж бичвэл дараагийн дуудлага тийшээ очно. [format string](../../userland/format-string/)-д ашигласан |
 | **PLT-ээр функц дуудах** | `puts@plt` нь **тогтмол хаягтай** тул leak хийх, функц дуудахад тохиромжтой (жишээ нь `puts(puts@got)`-оор libc leak) |
 | **RELRO-гийн зорилго** | [Full RELRO](../protections/#relro) нь GOT-ийг зөвхөн унших болгож GOT overwrite-ийг хаана |
 
