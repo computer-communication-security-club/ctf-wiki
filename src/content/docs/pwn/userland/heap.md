@@ -323,11 +323,27 @@ flag{h34p_tc4che_p01s0n_g0t_0verwr1te}
 
 ## Ажиллуулах
 
+**Локал binary-тай:**
+
 ```console
 $ cd challenges/pwn/userland/heap
-$ ./exploit.py LOCAL              # локал binary-тай
-$ make run && ./exploit.py HOST=localhost PORT=1337   # docker сервер лүү
+$ ./exploit.py LOCAL
 ```
+
+**Docker серверийн эсрэг.** `main`-д push хийх бүрт CI нь image-ийг
+`ghcr.io/computer-communication-security-club/pwn-<нэр>:latest` руу нийтэлдэг (`<нэр>` = challenge-ийн
+хавтасны нэр, энд `heap`). GitHub-аас бэлэн image татаж ажиллуулж болно:
+
+```console
+$ docker run --rm -p 1337:1337 ghcr.io/computer-communication-security-club/pwn-heap:latest
+# эсвэл эх кодоос: make run
+$ ./exploit.py HOST=localhost PORT=1337
+```
+
+:::note
+`docker run` нь image-ийг автоматаар татна (`docker pull ...` гэж тусад нь ч болно). Хэрэв package нь
+**private** бол эхлээд нэвтэрнэ: `docker login ghcr.io -u <github-хэрэглэгч>` (GitHub PAT, `read:packages` эрхтэй).
+:::
 
 
 ## Хамгаалалт
