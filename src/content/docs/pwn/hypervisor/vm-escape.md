@@ -30,7 +30,7 @@ userland программ уг алдааг ашиглан QEMU (hypervisor) п�
 | [`rootfs.cpio.gz`](https://github.com/computer-communication-security-club/ctf-wiki/raw/main/challenges/pwn/hypervisor/vm-escape/rootfs.cpio.gz) | Guest initramfs (root shell) |
 | [`run.sh`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/hypervisor/vm-escape/run.sh), [`Dockerfile`](https://github.com/computer-communication-security-club/ctf-wiki/blob/main/challenges/pwn/hypervisor/vm-escape/Dockerfile) | Local / remote ажиллуулах |
 
-Ажиллуулах (эхлээд QEMU-г угсарна — `build.sh` deps: `build-essential meson ninja-build pkg-config libglib2.0-dev libpixman-1-dev flex bison curl xz-utils`):
+Ажиллуулах (эхлээд QEMU-г угсарна — `build.sh` deps: `build-essential meson ninja-build pkg-config python3-venv libglib2.0-dev libpixman-1-dev flex bison curl xz-utils`):
 
 ```console
 $ cd challenges/pwn/hypervisor/vm-escape

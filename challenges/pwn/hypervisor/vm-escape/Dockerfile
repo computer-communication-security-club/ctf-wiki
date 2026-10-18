@@ -1,7 +1,7 @@
 # --- build stage: эмзэг QEMU-г угсарна ---
 FROM ubuntu:24.04 AS build
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential meson ninja-build pkg-config python3 \
+    build-essential meson ninja-build pkg-config python3 python3-venv python3-pip \
     libglib2.0-dev libpixman-1-dev flex bison curl ca-certificates xz-utils \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /b
