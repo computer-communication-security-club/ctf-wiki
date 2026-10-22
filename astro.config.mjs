@@ -59,6 +59,12 @@ export default defineConfig({
               { label: 'Heap', items: [
                 { label: 'tcache poisoning', slug: 'pwn/userland/tcache-poison' },
               ]},
+              ...(hideExperimental ? [] : [
+                { label: 'FSOP', items: [
+                  { label: 'FSOP', slug: 'pwn/userland/fsop' },
+                  { label: 'House of Apple 2', slug: 'pwn/userland/house-of-apple-2' },
+                ]},
+              ]),
             ]},
             ...(hideExperimental ? [] : [
               { label: 'Kernel', items: [

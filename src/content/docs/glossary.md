@@ -26,6 +26,9 @@ title: Нэр томъёо
 | tcache poisoning | tcache-ийн `fd` заагчийг хуурч дурын хаягт chunk гаргах |
 | unsorted bin | Чөлөөлсөн том chunk түр ордог жагсаалт — libc leak-ийн эх сурвалж |
 | safe-linking | tcache/fastbin-ийн `fd`-г xor-оор нуудаг хамгаалалт (glibc 2.32+) |
+| FSOP | File Stream Oriented Programming — glibc-ийн `FILE` (`_IO_FILE`) бүтцийг дарж файл үйлдлийг урвуулах |
+| vtable | Объект/бүтцийн функцийн заагчдын хүснэгт (`FILE`-ийн `_IO_OVERFLOW` гэх мэт) |
+| House of Apple 2 | vtable-ийг `_IO_wfile_jumps` болгож `_IO_vtable_check`-ийг тойрдог FSOP техник |
 | ret2usr | Kernel exploit-д return address-ийг userland код руу чиглүүлж ring-0-д ажиллуулах |
 | commit_creds | Процессын эрхийг (credential) солих kernel функц — privesc-д ашиглана |
 | KASLR | Kernel ASLR — kernel-ийн хаягийг санамсаргүй болгоно |
